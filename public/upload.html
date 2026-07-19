@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redstone-Bibliothek</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="language-switch">
+    <button id="language-btn">🇩🇪 DE</button>
+  </div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <h1>
+        <img src="icon.png" alt="" class="logo-icon"
+             onerror="this.outerHTML='<span class=\'glow\'>▮</span>'">
+        <span data-i18n="title">Redstone-Bibliothek</span>
+      </h1>
+      <a href="index.html" class="back-link" data-i18n="back">← Zurück zur Bibliothek</a>
+    </div>
+  </header>
+
+  <main>
+    <form id="upload-form" class="detail-page upload-form">
+      <h2 class="detail-title" data-i18n="uploadHeading">Neue Maschine hochladen</h2>
+
+      <!-- Wer eine .litematic hat, bekommt Name, Version und
+           Materialliste automatisch ausgefüllt (upload.js) -->
+      <label>
+        <span data-i18n="schematicLabel">Schematic-Datei (.litematic) – füllt das Formular automatisch aus</span>
+        <input type="file" id="schematic-file" accept=".litematic">
+      </label>
+      <p id="analyze-status" class="analyze-status" hidden></p>
+      <input type="hidden" name="fileToken" value="">
+
+      <label>
+        <span data-i18n="nameLabel">Name</span>
+        <input type="text" name="name" required maxlength="80">
+      </label>
+
+      <label>
+        <span data-i18n="categoryLabel">Kategorie</span>
+        <!-- value bleibt deutsch (so speichert es die Datenbank),
+             übersetzt wird nur das sichtbare Label -->
+        <select name="category">
+          <option value="Farm" data-i18n="farms">Farmen</option>
+          <option value="Tür" data-i18n="doors">Türen</option>
+          <option value="Speicher" data-i18n="storage">Speicher</option>
+          <option value="Logik" data-i18n="logic">Logik</option>
+        </select>
+      </label>
+
+      <label>
+        <span data-i18n="descriptionLabel">Beschreibung</span>
+        <textarea name="description" rows="3" required maxlength="300"></textarea>
+      </label>
+
+      <label>
+        <span data-i18n="version">Version</span>
+        <!-- Nur Vollversionen seit 1.12 (früher gab es Litematica
+             nicht). "+" heißt: läuft ab dieser Version aufwärts.
+             Ab 2026 nutzt Minecraft das Schema "Jahr.Drop". -->
+        <select name="version">
+          <option value="26.2+">26.2+</option>
+          <option value="26.1+">26.1+</option>
+          <option value="1.21+">1.21+</option>
+          <option value="1.20+" selected>1.20+</option>
+          <option value="1.19+">1.19+</option>
+          <option value="1.18+">1.18+</option>
+          <option value="1.17+">1.17+</option>
+          <option value="1.16+">1.16+</option>
+          <option value="1.15+">1.15+</option>
+          <option value="1.14+">1.14+</option>
+          <option value="1.13+">1.13+</option>
+          <option value="1.12+">1.12+</option>
+        </select>
+      </label>
+
+      <label>
+        <span data-i18n="difficultyLabel">Schwierigkeit</span>
+        <select name="difficulty">
+          <option value="Einfach" data-i18n="easy">Einfach</option>
+          <option value="Mittel" data-i18n="medium">Mittel</option>
+          <option value="Fortgeschritten" data-i18n="advanced">Fortgeschritten</option>
+        </select>
+      </label>
+
+      <label>
+        <span data-i18n="designer">Design</span>
+        <input type="text" name="designer" required placeholder="u/DeinName" maxlength="40">
+      </label>
+
+      <h3 class="detail-heading" data-i18n="materials">Materialien</h3>
+      <div id="material-rows"></div>
+      <button type="button" id="add-material" class="filter-btn" data-i18n="addMaterial">+ Material hinzufügen</button>
+
+      <p id="form-error" class="form-error" hidden></p>
+
+      <button type="submit" class="download-btn submit-btn" data-i18n="submit">Hochladen</button>
+    </form>
+  </main>
+
+  <footer class="site-footer">
+    <p data-i18n="footer">Ein Projekt für alle, die Redstone verstehen statt nur nachklicken wollen.</p>
+  </footer>
+
+  <script src="i18n.js"></script>
+  <script src="upload.js"></script>
+</body>
+</html>

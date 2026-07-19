@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redstone-Bibliothek</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="language-switch">
+    <button id="language-btn">🇩🇪 DE</button>
+  </div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <h1>
+        <img src="icon.png" alt="" class="logo-icon"
+             onerror="this.outerHTML='<span class=\'glow\'>▮</span>'">
+        <span data-i18n="title">Redstone-Bibliothek</span>
+      </h1>
+      <a href="index.html" class="back-link" data-i18n="back">← Zurück zur Bibliothek</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- wird von machine.js gefüllt -->
+    <article id="machine-detail" class="detail-page"></article>
+
+    <!-- 3D-Ansicht + Simulation; bleibt versteckt, wenn die
+         Maschine keine Schematic-Datei hat -->
+    <section id="viewer-section" class="viewer-section" hidden>
+      <h3 class="detail-heading" data-i18n="viewer3d">3D-Ansicht &amp; Simulation</h3>
+      <canvas id="structure-canvas"></canvas>
+      <div class="viewer-controls">
+        <button id="cam-mode" class="filter-btn">👁 Ansehen</button>
+        <button id="sim-play" class="filter-btn">▶ <span data-i18n="simPlay">Start</span></button>
+        <button id="sim-step" class="filter-btn" data-i18n="simStep">1 Tick</button>
+        <button id="sim-reset" class="filter-btn" data-i18n="simReset">Zurücksetzen</button>
+        <!-- 1× = echte Minecraft-Geschwindigkeit (20 Ticks/Sekunde) -->
+        <select id="sim-speed" class="difficulty-select" aria-label="Geschwindigkeit">
+          <option value="1">1×</option>
+          <option value="0.5" selected>0.5×</option>
+          <option value="0.2">0.2×</option>
+          <option value="0.1">0.1×</option>
+        </select>
+        <span id="tick-counter" class="tick-counter"></span>
+      </div>
+      <p id="viewer-status" class="viewer-status"></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p data-i18n="footer">Ein Projekt für alle, die Redstone verstehen statt nur nachklicken wollen.</p>
+  </footer>
+
+  <script src="i18n.js"></script>
+  <script src="sim.js"></script>
+  <script src="/vendor/gl-matrix.js"></script>
+  <script src="/vendor/deepslate.js"></script>
+  <script src="viewer.js"></script>
+  <script src="machine.js"></script>
+</body>
+</html>

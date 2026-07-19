@@ -1,0 +1,6 @@
+node_modules/
+library.db
+files/
+temp/
+_alt/
+.DS_Store

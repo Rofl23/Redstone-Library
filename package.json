@@ -1,0 +1,20 @@
+{
+  "name": "redstone-library",
+  "version": "1.0.0",
+  "description": "Website, auf der Minecraft-Spieler Redstone-Konstruktionen suchen und teilen können",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.15.0",
+    "deepslate": "0.19.2",
+    "express": "^4.21.2",
+    "gl-matrix": "^3.4.3",
+    "multer": "^1.4.5-lts.1",
+    "prismarine-nbt": "^2.7.0"
+  }
+}

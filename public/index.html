@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redstone-Bibliothek</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="language-switch">
+    <button id="language-btn">🇩🇪 DE</button>
+  </div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <h1>
+        <img src="icon.png" alt="" class="logo-icon"
+             onerror="this.outerHTML='<span class=\'glow\'>▮</span>'">
+        <span data-i18n="title">Redstone-Bibliothek</span>
+      </h1>
+
+      <p class="tagline" data-i18n="tagline">
+        Nachbauen ohne Rätselraten.
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <section class="search-row">
+      <input
+        type="text"
+        id="search-input"
+        class="search-input"
+        data-i18n-placeholder="search"
+        placeholder="Suche z. B. 'Tür' oder 'Farm'…"
+        aria-label="Maschinen durchsuchen"
+      >
+      <select id="difficulty-select" class="difficulty-select" aria-label="Schwierigkeit filtern">
+        <!-- value bleibt deutsch, weil die Datenbank deutsche
+             Schwierigkeitsgrade speichert — übersetzt wird nur das Label -->
+        <option value="alle" data-i18n="allDifficulties">Alle Schwierigkeiten</option>
+        <option value="Einfach" data-i18n="easy">Einfach</option>
+        <option value="Mittel" data-i18n="medium">Mittel</option>
+        <option value="Fortgeschritten" data-i18n="advanced">Fortgeschritten</option>
+      </select>
+      <a href="upload.html" class="upload-link" data-i18n="upload">+ Maschine hochladen</a>
+    </section>
+
+    <section class="filters" aria-label="Filter">
+      <button class="filter-btn active" data-filter="alle" data-i18n="all">Alle</button>
+      <button class="filter-btn" data-filter="Farm" data-i18n="farms">Farmen</button>
+      <button class="filter-btn" data-filter="Tür" data-i18n="doors">Türen</button>
+      <button class="filter-btn" data-filter="Speicher" data-i18n="storage">Speicher</button>
+      <button class="filter-btn" data-filter="Logik" data-i18n="logic">Logik</button>
+    </section>
+
+    <section id="machine-grid" class="machine-grid">
+      <!-- wird von script.js gefüllt -->
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p data-i18n="footer">Ein Projekt für alle, die Redstone verstehen statt nur nachklicken wollen.</p>
+  </footer>
+
+  <script src="i18n.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

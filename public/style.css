@@ -1,0 +1,417 @@
+/* ---- Design-Tokens ----
+   Farben:
+   --stone-950  #17171a  Hintergrund
+   --stone-900  #212124  Panels
+   --stone-800  #2c2c30  Karten
+   --stone-700  #3d3d42  Rahmen / Trennlinien
+   --bone       #e9e4da  Haupttext
+   --ash        #97949c  Nebentext
+   --redstone   #ff4d2e  Akzent aktiv / Glow
+   --redstone-dim #7a2418  Akzent inaktiv
+   Schrift:
+   Display: "Chakra Petch" (kantig, technisch)
+   Fließtext: system-ui
+   Utility/Tags: "JetBrains Mono"
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root{
+  --stone-950:#17171a;
+  --stone-900:#212124;
+  --stone-800:#2c2c30;
+  --stone-700:#3d3d42;
+  --bone:#e9e4da;
+  --ash:#97949c;
+  --redstone:#ff4d2e;
+  --redstone-dim:#7a2418;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  background:var(--stone-950);
+  color:var(--bone);
+  font-family:system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height:1.5;
+}
+
+/* Sprachumschalter */
+.language-switch{
+  position:fixed;
+  top:1rem;
+  right:1rem;
+  z-index:10;
+}
+#language-btn{
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.8rem;
+  background:var(--stone-900);
+  color:var(--bone);
+  border:1px solid var(--stone-700);
+  border-radius:0;
+  padding:0.4rem 0.7rem;
+  cursor:pointer;
+  transition:border-color 0.15s;
+}
+#language-btn:hover{
+  border-color:var(--redstone);
+}
+
+/* Header */
+.site-header{
+  border-bottom:1px solid var(--stone-700);
+  background:
+    linear-gradient(180deg, var(--stone-900), var(--stone-950));
+  padding:2.5rem 1.5rem 2rem;
+}
+.header-inner{
+  max-width:960px;
+  margin:0 auto;
+}
+.site-header h1{
+  font-family:"Chakra Petch", system-ui, sans-serif;
+  font-weight:700;
+  font-size:clamp(1.6rem, 4vw, 2.4rem);
+  letter-spacing:0.02em;
+  margin:0;
+  display:flex;
+  align-items:center;
+  gap:0.6rem;
+}
+.logo-icon{
+  height:1.4em;
+  width:auto;
+  image-rendering:pixelated; /* Minecraft-Pixel bleiben scharf */
+  filter:drop-shadow(0 0 8px rgba(255,77,46,0.7));
+  animation:pulse 2.4s ease-in-out infinite;
+}
+.glow{
+  color:var(--redstone);
+  text-shadow:0 0 10px rgba(255,77,46,0.9), 0 0 22px rgba(255,77,46,0.4);
+  animation:pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{ opacity:1; }
+  50%{ opacity:0.55; }
+}
+.tagline{
+  color:var(--ash);
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.9rem;
+  margin:0.4rem 0 0;
+}
+.back-link{
+  display:inline-block;
+  margin-top:0.6rem;
+  color:var(--ash);
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.85rem;
+  text-decoration:none;
+}
+.back-link:hover{ color:var(--redstone); }
+
+/* Suche + Schwierigkeit */
+.search-row{
+  max-width:960px;
+  margin:1.75rem auto 0;
+  padding:0 1.5rem;
+  display:flex;
+  flex-wrap:wrap;
+  gap:0.6rem;
+}
+.search-input,
+.difficulty-select{
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.85rem;
+  background:var(--stone-900);
+  color:var(--bone);
+  border:1px solid var(--stone-700);
+  border-radius:0;
+  padding:0.55rem 0.75rem;
+}
+.search-input{
+  flex:1;
+  min-width:180px;
+}
+.search-input::placeholder{ color:var(--ash); }
+.search-input:focus,
+.difficulty-select:focus{
+  outline:2px solid var(--redstone);
+  outline-offset:1px;
+}
+
+/* Filters */
+.filters{
+  max-width:960px;
+  margin:1.75rem auto 0;
+  padding:0 1.5rem;
+  display:flex;
+  flex-wrap:wrap;
+  gap:0.6rem;
+}
+.filter-btn{
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.85rem;
+  background:var(--stone-900);
+  color:var(--ash);
+  border:1px solid var(--stone-700);
+  border-radius:0;
+  padding:0.5rem 0.9rem;
+  cursor:pointer;
+  transition:border-color 0.15s, color 0.15s;
+}
+.filter-btn:hover{
+  color:var(--bone);
+  border-color:var(--redstone-dim);
+}
+.filter-btn.active{
+  color:var(--redstone);
+  border-color:var(--redstone);
+  box-shadow:0 0 8px rgba(255,77,46,0.35) inset;
+}
+
+/* Grid */
+main{ max-width:960px; margin:0 auto; padding:0 1.5rem 3rem; }
+.machine-grid{
+  margin-top:1.5rem;
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+  gap:1rem;
+}
+
+/* Karten sind jetzt Links (<a>) auf ihre eigene Seite */
+.card{
+  display:block;
+  color:inherit;
+  text-decoration:none;
+  background:var(--stone-800);
+  border:1px solid var(--stone-700);
+  border-radius:0;
+  padding:1.1rem 1.2rem 1.3rem;
+  position:relative;
+  transition:border-color 0.15s, transform 0.15s;
+}
+.card:hover{
+  border-color:var(--redstone-dim);
+  transform:translateY(-2px);
+}
+.card:hover .card-title{ color:var(--redstone); }
+.card:focus-visible{
+  outline:2px solid var(--redstone);
+  outline-offset:2px;
+}
+
+.card-title{
+  font-family:"Chakra Petch", system-ui, sans-serif;
+  font-weight:700;
+  font-size:1.05rem;
+  margin:0 0 0.4rem;
+  transition:color 0.15s;
+}
+.card-desc{
+  color:var(--ash);
+  font-size:0.9rem;
+  margin:0 0 0.9rem;
+}
+.card-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:0.4rem;
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.75rem;
+}
+.tag{
+  border:1px solid var(--stone-700);
+  color:var(--ash);
+  padding:0.15rem 0.5rem;
+}
+.tag.category{
+  border-color:var(--redstone-dim);
+  color:#ffb199;
+}
+
+.empty-state{
+  color:var(--ash);
+  font-family:"JetBrains Mono", monospace;
+  padding:2rem 0;
+}
+
+/* Detailseite (machine.html) */
+.detail-page{
+  max-width:640px;
+  margin-top:2rem;
+  background:var(--stone-900);
+  border:1px solid var(--stone-700);
+  padding:1.5rem 1.75rem 1.75rem;
+}
+.detail-title{
+  font-family:"Chakra Petch", system-ui, sans-serif;
+  font-size:1.4rem;
+  margin:0 0 0.4rem;
+}
+.detail-meta{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:0.25rem 1rem;
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.8rem;
+  margin:1rem 0;
+}
+.detail-meta dt{ color:var(--ash); }
+.detail-meta dd{ margin:0; }
+.detail-heading{
+  font-family:"Chakra Petch", system-ui, sans-serif;
+  font-size:0.95rem;
+  margin:1.25rem 0 0.5rem;
+}
+.material-list{
+  list-style:none;
+  margin:0 0 1.25rem;
+  padding:0;
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.85rem;
+}
+.material-list li{
+  border-bottom:1px solid var(--stone-700);
+  padding:0.35rem 0;
+}
+.mat-amount{ color:var(--redstone); }
+
+.download-btn{
+  display:inline-block;
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.85rem;
+  color:var(--redstone);
+  border:1px solid var(--redstone);
+  padding:0.55rem 1rem;
+  text-decoration:none;
+  transition:box-shadow 0.15s;
+}
+.download-btn:hover{
+  box-shadow:0 0 10px rgba(255,77,46,0.4) inset;
+}
+
+/* Upload-Link auf der Startseite */
+.upload-link{
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.85rem;
+  color:var(--redstone);
+  border:1px solid var(--redstone-dim);
+  padding:0.55rem 0.9rem;
+  text-decoration:none;
+  transition:border-color 0.15s;
+}
+.upload-link:hover{ border-color:var(--redstone); }
+
+/* Upload-Formular */
+.upload-form label{
+  display:block;
+  margin-bottom:0.9rem;
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.8rem;
+  color:var(--ash);
+}
+.upload-form input,
+.upload-form select,
+.upload-form textarea{
+  display:block;
+  width:100%;
+  margin-top:0.25rem;
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.85rem;
+  background:var(--stone-950);
+  color:var(--bone);
+  border:1px solid var(--stone-700);
+  border-radius:0;
+  padding:0.5rem 0.65rem;
+}
+.upload-form input:focus,
+.upload-form select:focus,
+.upload-form textarea:focus{
+  outline:2px solid var(--redstone);
+  outline-offset:1px;
+}
+.material-row{
+  display:flex;
+  gap:0.5rem;
+  margin-bottom:0.5rem;
+}
+.material-row .mat-name{ flex:1; }
+.material-row .mat-amount{ width:5.5rem; color:var(--bone); }
+.remove-material{
+  background:none;
+  border:1px solid var(--stone-700);
+  color:var(--ash);
+  padding:0 0.6rem;
+  cursor:pointer;
+}
+.remove-material:hover{
+  color:var(--redstone);
+  border-color:var(--redstone);
+}
+#add-material{ margin-bottom:1.25rem; }
+.analyze-status{
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.8rem;
+  color:var(--redstone);
+  margin:0 0 0.9rem;
+}
+.upload-form input[type="file"]{
+  border-style:dashed;
+  cursor:pointer;
+}
+.form-error{
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.85rem;
+  color:#ff8877;
+  border:1px solid var(--redstone-dim);
+  padding:0.6rem 0.8rem;
+}
+.submit-btn{
+  cursor:pointer;
+  background:none;
+  font-size:0.95rem;
+}
+
+/* 3D-Viewer + Simulation */
+.viewer-section{
+  max-width:640px;
+  margin-top:1.5rem;
+}
+#structure-canvas{
+  width:100%;
+  height:420px;
+  display:block;
+  background:var(--stone-900);
+  border:1px solid var(--stone-700);
+  cursor:grab;
+}
+#structure-canvas:active{ cursor:grabbing; }
+.viewer-controls{
+  display:flex;
+  gap:0.6rem;
+  margin-top:0.6rem;
+}
+.tick-counter{
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.8rem;
+  color:var(--redstone);
+  align-self:center;
+  margin-left:auto;
+}
+.viewer-status{
+  font-family:"JetBrains Mono", monospace;
+  font-size:0.75rem;
+  color:var(--ash);
+  margin:0.5rem 0 0;
+}
+
+.site-footer{
+  border-top:1px solid var(--stone-700);
+  color:var(--ash);
+  font-size:0.85rem;
+  text-align:center;
+  padding:1.5rem;
+}
