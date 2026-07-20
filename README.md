@@ -124,25 +124,47 @@ Beobachter-Pulse), `npm run test:door` (Integrationstest 8x8 Flush
 Trapdoor Final), `npm run debug:door` (Fortschritts- und
 Konsistenz-Diagnose).
 
-Ein wichtiges Vanilla-Detail ist ebenfalls umgesetzt: **Kolbenköpfe
-leiten Block-Updates an ihre Basis weiter** (wie
-`PistonHeadBlock.neighborChanged`) — so wecken Nachbar-Ankünfte
-QC-geparkte Kolben, deren Basis das Update selbst nie erreichen
-würde. Nach dem Stillstand meldet `npm run debug:door` inzwischen
-**null** inkonsistente Komponenten: jeder Zustand passt zu seinen
-Eingängen, es gibt keine Endlos-Oszillationen und keine hängenden
-Bewegungen mehr.
+Mehrere Vanilla-Details sind zusätzlich umgesetzt, die alle auf
+demselben Muster beruhen — **welche Blöcke beim Zustandswechsel
+selbst Block-Updates verschicken** (`setBlock(…, Flag 1 =
+UPDATE_NEIGHBORS)`):
 
-Bekannte Grenze: Die 8x8 Flush Trapdoor Final öffnet aktuell 4 ihrer
-8 Spalten (außen je 2 pro Seite), dann fehlt der Startimpuls für die
-Verschiebung des Block-Streifens (Tape) der Ostseite. Diagnose-Stand:
-Die West-Tape-Maschinerie (y=3–7, z≤6/z≥13) läuft vollständig durch;
-ihr Ost-Spiegel feuert nie. Der Ost-Trigger hängt an der
-Repeater-Leitung y=5, z=19 (x=8–15), gespeist über ein
-Komparator-Gate, das den Komposter (17,5,18, Level 1) liest — diese
-Leitung bleibt über den ganzen Lauf tot. Nächster Schritt: verfolgen,
-was dieses Gate in Vanilla freischaltet (vermutlich ein weiteres
-Update-/Timing-Detail des Analog-Busses), z. B. per Referenzmessung
-in echtem Minecraft. Werkzeuge dafür liegen bereit:
-`test/door.debug.js` (Konsistenz-Check) und die Testfälle in
-`test/sim.test.js`.
+* **Kolbenköpfe** leiten Block-Updates an ihre Basis weiter (wie
+  `PistonHeadBlock.neighborChanged`).
+* **Notenblöcke** schicken beim Wechsel von `powered` Updates an alle
+  6 Nachbarn (`NoteBlock.neighborChanged` → `setBlock(…, 3)`). Das ist
+  der klassische Notenblock-BUD, der QC-geparkte Kolben weckt.
+* **Redstone-Lampen** ebenso, beim Ein- wie beim Ausschalten.
+* **Antriebsschienen** ebenso, plus die zusätzlichen expliziten
+  Updates an den Block darunter (und bei Steigung darüber), wie in
+  `PoweredRailBlock.updateState`.
+* **Quasi-Konnektivität gilt für alle Kolben**, auch für aufwärts
+  zeigende. Vanillas `PistonBaseBlock.getNeighborSignal` prüft die
+  Nachbarn von `pos.above()` unabhängig vom Facing.
+
+Türen/Falltüren verschicken bewusst **keine** Updates — Vanilla nutzt
+dort Flag 2.
+
+Nach dem Stillstand meldet `npm run debug:door` **null** inkonsistente
+Komponenten: jeder Zustand passt zu seinen Eingängen, keine
+Endlos-Oszillationen, keine hängenden Bewegungen.
+
+Bekannte Grenze: Die 8x8 Flush Trapdoor Final öffnet aktuell **56 von
+64** Feldern. Das Komparator-Gate der Ostseite funktioniert seit dem
+Notenblock-BUD-Fix: Der Sticky-Kolben (18,5,17) schiebt den Komposter
+(18,5,18) nach (18,5,19) vor den Komparator (17,5,19) — exakt
+zeitgleich mit dem West-Spiegel (Kolben 3,5,2, Komposter 4,5,2 →
+5,5,2, Komparator 6,5,2). Beide Analog-Leitungen (y=5, z=2 bzw.
+z=19) gehen bei GT 17 an.
+
+Offen bleiben die Nordhälften der Spalten **x=12 und x=14** (y=9,
+z=7–10). Diagnose-Stand: Bei GT 21 sollen die aufwärts zeigenden
+Kolben `(x,4,8)` für x=8…15 ausfahren. Für x=8–11 passiert das; die
+Kolben x=12–15 werden im selben Game-Tick stattdessen nach Osten
+**weggezogen**, weil die westwärts zeigenden Sticky-Kolben (17,3,7),
+(17,4,9) und (18,3,5) genau dann einziehen. Die Südhälfte (Reihe
+`(x,4,13)`) fährt dagegen bei GT 21 vollständig aus — dort feuern die
+gespiegelten Zieher zu einem anderen Zeitpunkt. Nächster Schritt:
+diese Zeitasymmetrie zwischen Nord- und Südhälfte zurückverfolgen
+(Reihenfolge von Block-Events gegenüber der Bewegungs-Phase im selben
+Tick). Werkzeuge: `test/door.debug.js` und `test/sim.test.js`.

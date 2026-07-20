@@ -838,6 +838,7 @@ class RedstoneSim {
     if (powered && !lit) {
       c.props.lit = "true";
       this.stateChanged(x, y, z);
+      this.updateNeighbors(x, y, z); // Vanilla: setBlock(…, 3) → UPDATE_NEIGHBORS
     } else if (!powered && lit && !this.hasTick(x, y, z)) {
       this.scheduleTick(x, y, z, 4, PRIO_NORMAL); // Vanilla: 4 GT Aus-Verzögerung
     }
@@ -846,6 +847,7 @@ class RedstoneSim {
     if (!this.deviceHasPower(x, y, z) && c.props.lit === "true") {
       c.props.lit = "false";
       this.stateChanged(x, y, z);
+      this.updateNeighbors(x, y, z); // Vanilla: setBlock(…, 3) → UPDATE_NEIGHBORS
     }
   }
 
@@ -886,6 +888,11 @@ class RedstoneSim {
     if ((c.props.powered || "false") !== want) {
       c.props.powered = want;
       this.stateChanged(x, y, z);
+      // Vanilla: NoteBlock.neighborChanged setzt POWERED per setBlock(…, 3),
+      // Flag 1 = UPDATE_NEIGHBORS. Der Notenblock schickt also selbst
+      // Block-Updates an alle 6 Nachbarn — genau das weckt QC-geparkte
+      // Kolben daneben (klassischer Notenblock-BUD).
+      this.updateNeighbors(x, y, z);
     }
   }
 
@@ -920,6 +927,12 @@ class RedstoneSim {
     if ((c.props.powered || "false") !== want) {
       c.props.powered = want;
       this.stateChanged(x, y, z);
+      // Vanilla PoweredRailBlock.updateState: setBlock(…, 3) → Updates an
+      // alle 6 Nachbarn, danach ausdrücklich noch an den Block DARUNTER
+      // (und bei Steigung zusätzlich an den darüber).
+      this.updateNeighbors(x, y, z);
+      this.updateNeighbors(x, y - 1, z);
+      if (/^ascending_/.test(c.props.shape || "")) this.updateNeighbors(x, y + 1, z);
       // Kette weiterreichen: Nachbar-Schienen updaten
       for (const s of HORIZONTAL) {
         const d = DIRS[s];
@@ -1012,8 +1025,11 @@ class RedstoneSim {
     const facing = c.props.facing || "north";
     // direkter Strom: alle Seiten außer der Vorderseite
     if (this.deviceHasPower(x, y, z, facing)) return true;
-    // QC: Position über dem Kolben (nicht für aufwärts zeigende)
-    if (facing !== "up" && this.inside(x, y + 1, z)) {
+    // QC: Position über dem Kolben. Vanilla (PistonBaseBlock.getNeighborSignal)
+    // prüft die Nachbarn von pos.above() IMMER — auch bei aufwärts zeigenden
+    // Kolben, deren Vorderseite genau dort liegt. Genau darauf bauen die
+    // meisten bündigen Türen auf.
+    if (this.inside(x, y + 1, z)) {
       if (this.deviceHasPower(x, y + 1, z, "down")) return true;
     }
     return false;
