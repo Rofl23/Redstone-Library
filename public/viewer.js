@@ -195,6 +195,17 @@ async function initViewer(machineId) {
   let eye = [0, 0, 0];
   const keys = new Set();
 
+  // Kamera auf die Standard-Ansicht zurücksetzen: Ansehen-Modus,
+  // zentriert auf die Konstruktion, ursprünglicher Winkel + Abstand
+  function resetCamera() {
+    center[0] = grid.size[0] / 2;
+    center[1] = grid.size[1] / 2;
+    center[2] = grid.size[2] / 2;
+    yaw = 0.7; pitch = 0.5;
+    dist = Math.max(...grid.size) * 1.8 + 2;
+    mode = "orbit";
+  }
+
   // Richtung von der Kamera weg nach hinten (Gegenteil der Blickrichtung)
   function backVector() {
     return [
@@ -348,11 +359,9 @@ async function initViewer(machineId) {
       eye = [center[0] + b[0] * dist, center[1] + b[1] * dist, center[2] + b[2] * dist];
       mode = "free";
     } else {
-      // Orbit-Mittelpunkt vor die Kamera legen — Bild bleibt gleich
-      center[0] = eye[0] - b[0] * dist;
-      center[1] = eye[1] - b[1] * dist;
-      center[2] = eye[2] - b[2] * dist;
-      mode = "orbit";
+      // zurück zu "Ansehen": Standard-Ansicht — nach dem freien
+      // Herumfliegen will man wieder den Überblick
+      resetCamera();
     }
     updateModeUI();
     needsRedraw = true;
@@ -480,6 +489,10 @@ async function initViewer(machineId) {
     if (timer) { clearInterval(timer); timer = null; playBtn.textContent = "▶ " + t("simPlay"); }
     sim.reset(); sim.settle();
     tickCounter.textContent = "GT 0";
+    // Reset setzt auch die Kamera auf die Standard-Ansicht zurück
+    resetCamera();
+    updateModeUI();
+    needsRedraw = true;
   });
 
   updateModeUI();
