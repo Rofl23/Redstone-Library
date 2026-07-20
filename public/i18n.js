@@ -51,6 +51,8 @@ const translations = {
     viewerLoading: "3D-Ansicht lädt… (beim ersten Mal dauert es kurz, Texturen werden geladen)",
     viewerHint: "Ziehen = Ansicht drehen · Mausrad = zoomen · Klick auf Hebel/Knopf = schalten",
     viewerHintFree: "Ziehen = umsehen · WASD + Q/E = fliegen · Mausrad = vor/zurück · Klick = schalten",
+    viewerHintTouch: "1 Finger = drehen · 2 Finger = zoomen · Tippen = Hebel/Knopf schalten",
+    viewerHintFreeTouch: "1 Finger = umsehen · 2 Finger zusammen/auseinander = fliegen · Tippen = schalten",
     modeOrbit: "Ansehen",
     modeFree: "Freie Kamera",
     viewerError: "3D-Ansicht konnte nicht geladen werden."
@@ -102,6 +104,8 @@ const translations = {
     viewerLoading: "Loading 3D view… (first time takes a moment, textures are loading)",
     viewerHint: "Drag = rotate view · Wheel = zoom · Click levers/buttons to toggle",
     viewerHintFree: "Drag = look around · WASD + Q/E = fly · Wheel = forward/back · Click to toggle",
+    viewerHintTouch: "1 finger = rotate · 2 fingers = zoom · Tap levers/buttons to toggle",
+    viewerHintFreeTouch: "1 finger = look around · pinch = fly · Tap to toggle",
     modeOrbit: "View",
     modeFree: "Free camera",
     viewerError: "Could not load the 3D view."

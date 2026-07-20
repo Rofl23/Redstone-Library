@@ -296,10 +296,49 @@ async function initViewer(machineId) {
 
   // ---- Modus-Umschalter ----
   const modeBtn = document.getElementById("cam-mode");
+  // grobe Zeiger = Touch-Gerät → passende Bedienhinweise zeigen
+  const isTouch = window.matchMedia("(pointer: coarse)").matches;
   const updateModeUI = () => {
     modeBtn.textContent = mode === "orbit" ? "👁 " + t("modeOrbit") : "✈ " + t("modeFree");
-    status.textContent = mode === "orbit" ? t("viewerHint") : t("viewerHintFree");
+    status.textContent = mode === "orbit"
+      ? t(isTouch ? "viewerHintTouch" : "viewerHint")
+      : t(isTouch ? "viewerHintFreeTouch" : "viewerHintFree");
   };
+
+  // ---- Vollbild ----
+  // Erst das echte Fullscreen-API versuchen; auf iPhones gibt es das
+  // für normale Elemente nicht — dort greift der CSS-Fallback
+  // (.fs-mode legt den Viewer bildschirmfüllend über die Seite).
+  const fsBtn = document.getElementById("fullscreen-btn");
+  const sectionEl = document.getElementById("viewer-section");
+  function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = canvas.clientWidth * dpr;
+    canvas.height = canvas.clientHeight * dpr;
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    needsRedraw = true;
+  }
+  const fsActive = () => document.fullscreenElement === sectionEl || sectionEl.classList.contains("fs-mode");
+  fsBtn.addEventListener("click", () => {
+    if (fsActive()) {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      sectionEl.classList.remove("fs-mode");
+      document.body.classList.remove("fs-lock");
+    } else {
+      sectionEl.classList.add("fs-mode");
+      document.body.classList.add("fs-lock");
+      if (sectionEl.requestFullscreen) sectionEl.requestFullscreen().catch(() => {});
+    }
+    setTimeout(resizeCanvas, 150);
+  });
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement) {
+      sectionEl.classList.remove("fs-mode");
+      document.body.classList.remove("fs-lock");
+    }
+    setTimeout(resizeCanvas, 150);
+  });
+  window.addEventListener("resize", () => setTimeout(resizeCanvas, 150));
   modeBtn.addEventListener("click", () => {
     const b = backVector();
     if (mode === "orbit") {
@@ -317,12 +356,12 @@ async function initViewer(machineId) {
     needsRedraw = true;
   });
 
-  // ---- Klick → Raycast ins Gitter → Hebel/Knopf schalten ----
-  canvas.addEventListener("click", e => {
-    if (moved) return; // war ein Drag, kein Klick
+  // ---- Klick/Tipp → Raycast ins Gitter → Hebel/Knopf schalten ----
+  // Als eigene Funktion, damit Maus-Klick UND Touch-Tipp sie nutzen
+  function tapAt(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
-    const ndcX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    const ndcY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+    const ndcX = ((clientX - rect.left) / rect.width) * 2 - 1;
+    const ndcY = -(((clientY - rect.top) / rect.height) * 2 - 1);
 
     // Strahl aus der Kamera rekonstruieren (inverse view-projection)
     const proj = mat4.perspective(mat4.create(), 70 * Math.PI / 180,
@@ -343,7 +382,74 @@ async function initViewer(machineId) {
       }
       px += dir[0] * 0.25; py += dir[1] * 0.25; pz += dir[2] * 0.25;
     }
+  }
+  canvas.addEventListener("click", e => {
+    if (moved) return; // war ein Drag, kein Klick
+    tapAt(e.clientX, e.clientY);
   });
+
+  // ---- Touch-Steuerung (Handy/Tablet) ----
+  // 1 Finger ziehen = drehen/umsehen · 2 Finger Pinch = zoomen bzw.
+  // im freien Modus vor/zurück fliegen · kurzes Tippen = schalten
+  let touchStart = null;   // { x, y, at } für die Tipp-Erkennung
+  let touchMovedFar = false;
+  let pinchDist = null;
+
+  canvas.addEventListener("touchstart", e => {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+      const t0 = e.touches[0];
+      touchStart = { x: t0.clientX, y: t0.clientY, at: Date.now() };
+      touchMovedFar = false;
+      lastX = t0.clientX; lastY = t0.clientY;
+    } else if (e.touches.length === 2) {
+      touchStart = null; // zwei Finger = sicher kein Tipp
+      pinchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", e => {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+      const t0 = e.touches[0];
+      const dx = t0.clientX - lastX, dy = t0.clientY - lastY;
+      if (touchStart && Math.abs(t0.clientX - touchStart.x) + Math.abs(t0.clientY - touchStart.y) > 12) {
+        touchMovedFar = true;
+      }
+      yaw += dx / 120; pitch += dy / 120;
+      pitch = Math.max(-1.55, Math.min(1.55, pitch));
+      lastX = t0.clientX; lastY = t0.clientY;
+      needsRedraw = true;
+    } else if (e.touches.length === 2 && pinchDist !== null) {
+      const now = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const delta = now - pinchDist;
+      pinchDist = now;
+      if (mode === "orbit") {
+        dist = Math.max(3, Math.min(120, dist - delta * 0.05));
+      } else {
+        const b = backVector();
+        const step = -delta * 0.05;
+        eye[0] += b[0] * step; eye[1] += b[1] * step; eye[2] += b[2] * step;
+      }
+      needsRedraw = true;
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("touchend", e => {
+    e.preventDefault();
+    if (e.touches.length < 2) pinchDist = null;
+    // kurzer Tipp ohne große Bewegung → wie ein Klick behandeln
+    if (touchStart && !touchMovedFar && Date.now() - touchStart.at < 400 && e.touches.length === 0) {
+      tapAt(touchStart.x, touchStart.y);
+    }
+    if (e.touches.length === 0) touchStart = null;
+  }, { passive: false });
 
   // ---- Simulations-Steuerung ----
   // Der Tick-Zähler macht sichtbar, dass "1 Tick" auch dann etwas

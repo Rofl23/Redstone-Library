@@ -387,7 +387,29 @@ main{ max-width:960px; margin:0 auto; padding:0 1.5rem 3rem; }
   background:var(--stone-900);
   border:1px solid var(--stone-700);
   cursor:grab;
+  touch-action:none; /* Finger auf dem Canvas scrollt nicht die Seite */
 }
+
+/* Vollbild-Modus (echtes Fullscreen-API oder CSS-Fallback für iPhones) */
+.viewer-section.fs-mode{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  margin:0;
+  max-width:none;
+  background:var(--stone-950);
+  display:flex;
+  flex-direction:column;
+  padding:0.5rem;
+}
+.viewer-section.fs-mode #structure-canvas{
+  flex:1;
+  height:auto;
+  min-height:0;
+}
+.viewer-section.fs-mode .detail-heading{ display:none; }
+.viewer-section.fs-mode .viewer-controls{ flex-wrap:wrap; }
+body.fs-lock{ overflow:hidden; }
 #structure-canvas:active{ cursor:grabbing; }
 .viewer-controls{
   display:flex;
