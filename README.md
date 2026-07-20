@@ -158,13 +158,30 @@ zeitgleich mit dem West-Spiegel (Kolben 3,5,2, Komposter 4,5,2 →
 z=19) gehen bei GT 17 an.
 
 Offen bleiben die Nordhälften der Spalten **x=12 und x=14** (y=9,
-z=7–10). Diagnose-Stand: Bei GT 21 sollen die aufwärts zeigenden
-Kolben `(x,4,8)` für x=8…15 ausfahren. Für x=8–11 passiert das; die
-Kolben x=12–15 werden im selben Game-Tick stattdessen nach Osten
-**weggezogen**, weil die westwärts zeigenden Sticky-Kolben (17,3,7),
-(17,4,9) und (18,3,5) genau dann einziehen. Die Südhälfte (Reihe
-`(x,4,13)`) fährt dagegen bei GT 21 vollständig aus — dort feuern die
-gespiegelten Zieher zu einem anderen Zeitpunkt. Nächster Schritt:
-diese Zeitasymmetrie zwischen Nord- und Südhälfte zurückverfolgen
-(Reihenfolge von Block-Events gegenüber der Bewegungs-Phase im selben
-Tick). Werkzeuge: `test/door.debug.js` und `test/sim.test.js`.
+z=7–10). Die Ursache ist zurückverfolgt bis zum Auslöser — es fehlt
+kein Impuls, es ist einer **zu viel**:
+
+```
+GT 13  Notenblock (16,4,4) wird powered
+GT 15  Notenblock wieder aus → Beobachter (16,4,5) pulst
+GT 15  dessen Ausgang gibt QC auf (16,4,6) → Kolben (16,3,6) fährt aus
+       und schiebt eine 12er-Gruppe nach Osten
+       ↳ dabei wird Sticky-Kolben (16,4,9) mitgerissen
+GT 15+ (16,4,9) WANDERT: 16→17→18→19… ein Block alle 10 GT
+GT 21  dieser Wanderer zieht beim Einziehen die Aufwärts-Kolbenreihe
+       (12…15,4,8) nach Osten, statt sie ausfahren zu lassen
+       ↳ Nordhälfte x=12 und x=14 bleibt zu
+```
+
+Der Strukturspiegel **(7,3,6) feuert im ganzen Lauf kein einziges
+Mal**, ebenso bleibt (7,4,9) komplett unbewegt — die Westseite
+verhält sich richtig, die Ostseite hat einen Runaway. Der
+Beobachter-Puls auf den Notenblock-Zustandswechsel ist dabei korrekt
+(POWERED ist Teil des Blockzustands, Vanilla-Beobachter sehen das).
+
+Nächster Schritt: klären, warum Notenblock **(16,4,4)** bei GT 13
+Strom bekommt, sein Gegenstück (7,4,4) aber nie. Achtung: Der Bau ist
+**nicht** sauber ost-west-gespiegelt (583 Abweichungen schon im
+Ausgangszustand), eine automatische Spiegel-Bisektion greift also
+nicht — der Vergleich muss von Hand über die jeweiligen Bauteilpaare
+laufen. Werkzeuge: `test/door.debug.js` und `test/sim.test.js`.
