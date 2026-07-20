@@ -179,9 +179,41 @@ verhält sich richtig, die Ostseite hat einen Runaway. Der
 Beobachter-Puls auf den Notenblock-Zustandswechsel ist dabei korrekt
 (POWERED ist Teil des Blockzustands, Vanilla-Beobachter sehen das).
 
-Nächster Schritt: klären, warum Notenblock **(16,4,4)** bei GT 13
-Strom bekommt, sein Gegenstück (7,4,4) aber nie. Achtung: Der Bau ist
-**nicht** sauber ost-west-gespiegelt (583 Abweichungen schon im
-Ausgangszustand), eine automatische Spiegel-Bisektion greift also
-nicht — der Vergleich muss von Hand über die jeweiligen Bauteilpaare
-laufen. Werkzeuge: `test/door.debug.js` und `test/sim.test.js`.
+Der Wanderer marschiert dabei als Ganzes: Kolben (17,3,5) zieht beim
+Einziehen den Schieber (16,3,6) per Slime-Klebung einen Block nach
+Osten, der schiebt erneut — fünf Zyklen bis x=21, dann ist der Platz
+alle.
+
+**Bereits geprüft und als Ursache ausgeschlossen:**
+
+* *Der Auslöser.* Notenblock (16,4,4) wird über den Target-Block
+  (16,4,3) und den Staub (16,4,2) powered. Staub gibt in Vanilla
+  starkes Signal in seine Zeigerichtung, der Target-Block leitet es
+  als Vollblock weiter — regelkonform. Die Westseite hat an dieser
+  Stelle schlicht keinen Target/Staub, die beiden Arme sind hier
+  **absichtlich verschieden gebaut**, kein Spiegel.
+* *Der Beobachter-Puls* auf den Notenblock-Zustandswechsel (POWERED
+  gehört zum Blockzustand) und die *QC über Luft* auf (16,4,6) sind
+  beide vanilla-korrekt.
+* *`collectGroup`.* Eine getreue Portierung von Vanillas
+  `PistonStructureResolver` (inkl. „Schubachse beim Verzweigen
+  überspringen") liefert für den Schub bei GT 15 **exakt dieselben 12
+  Blöcke** — keine Abweichung.
+* *Die Baugruppe selbst* ist sauber ost-west-gespiegelt (Obsidian
+  blockiert auf beiden Seiten die nach innen zeigenden Kolben
+  (6,3,5)/(17,3,5) identisch).
+
+Damit ist jeder Einzelschritt für sich vanilla-treu, das Gesamtergebnis
+aber falsch. Nächster Verdacht: nicht *ob*, sondern *wann* — die
+relative Reihenfolge von Block-Events und Bewegungs-Phase innerhalb
+eines Ticks, die darüber entscheidet, ob der Zieher (17,3,5) den
+Schieber (16,3,6) überhaupt noch zu fassen bekommt. Zu klären wäre am
+besten per Referenzmessung in echtem Minecraft, ob die Ost-Baugruppe
+dort ebenfalls wandert (dann liegt der Fehler in der Kollateralwirkung
+bei GT 21) oder stillsteht (dann in der Tick-Phasenordnung).
+
+Achtung für die Weiterarbeit: Der Bau ist **nicht** global
+ost-west-gespiegelt (583 Abweichungen schon im Ausgangszustand), eine
+automatische Spiegel-Bisektion greift nicht — der Vergleich muss über
+die jeweiligen Bauteilpaare von Hand laufen. Werkzeuge:
+`test/door.debug.js` und `test/sim.test.js`.
