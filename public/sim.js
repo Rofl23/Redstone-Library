@@ -299,6 +299,15 @@ class RedstoneSim {
       else if (/powered_rail$|activator_rail$/.test(n)) this.railUpdate(c, x, y, z);
       else if (/_leaves$/.test(n)) this.leafUpdate(c, x, y, z);
       else if (n.endsWith("tripwire_hook")) this.hookUpdate(c, x, y, z);
+      else if (n === "minecraft:piston_head") {
+        // Vanilla: PistonHeadBlock.neighborChanged reicht das Update an
+        // die BASIS weiter — so wecken Nachbar-Ankünfte QC-geparkte
+        // Kolben, deren Basis das Update selbst nie erreichen würde.
+        const d = DIRS[OPPOSITE[c.props.facing || "north"]];
+        const bx = x + d[0], by = y + d[1], bz = z + d[2];
+        const base = this.get(bx, by, bz);
+        if (base && isPiston(base.name)) this.pistonUpdate(base, bx, by, bz);
+      }
     } finally {
       this.updateDepth--;
     }

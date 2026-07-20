@@ -4,7 +4,10 @@
   "description": "Website, auf der Minecraft-Spieler Redstone-Konstruktionen suchen und teilen können",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node test/sim.test.js",
+    "test:door": "node test/door.test.js",
+    "debug:door": "node test/door.debug.js"
   },
   "engines": {
     "node": ">=22.5.0"

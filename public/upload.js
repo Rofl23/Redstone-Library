@@ -103,6 +103,8 @@ async function handleSubmit(event) {
     name: el.name.value.trim(),
     category: el.category.value,
     description: el.description.value.trim(),
+    nameEn: el.nameEn.value.trim() || undefined,
+    descriptionEn: el.descriptionEn.value.trim() || undefined,
     version: el.version.value.trim(),
     difficulty: el.difficulty.value,
     designer: el.designer.value.trim(),

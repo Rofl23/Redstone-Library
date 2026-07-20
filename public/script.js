@@ -25,8 +25,8 @@ function renderMachines(list) {
     card.className = "card";
     card.href = `machine.html?id=${encodeURIComponent(machine.id)}`;
     card.innerHTML = `
-      <h2 class="card-title">${machine.name}</h2>
-      <p class="card-desc">${machine.description}</p>
+      <h2 class="card-title">${localName(machine)}</h2>
+      <p class="card-desc">${localDesc(machine)}</p>
       <div class="card-meta">
         <span class="tag category">${machine.category}</span>
         <span class="tag">${machine.version}</span>
@@ -58,7 +58,9 @@ function applyFilters() {
     const matchesSearch =
       searchTerm === "" ||
       m.name.toLowerCase().includes(searchTerm) ||
-      m.description.toLowerCase().includes(searchTerm);
+      m.description.toLowerCase().includes(searchTerm) ||
+      (m.nameEn || "").toLowerCase().includes(searchTerm) ||
+      (m.descriptionEn || "").toLowerCase().includes(searchTerm);
 
     return matchesCategory && matchesDifficulty && matchesSearch;
   });

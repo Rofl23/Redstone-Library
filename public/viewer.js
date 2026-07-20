@@ -221,17 +221,19 @@ async function initViewer(machineId) {
 
   let needsRedraw = true;
   function render() {
-    // WASD/QE: nur im freien Modus, pro Frame solange gedrückt
-    if (mode === "free" && keys.size) {
-      const speed = 0.35;
+    // WASD/QE (Tastatur = PC): im freien Modus bewegt sich die
+    // Kamera selbst, im Ansehen-Modus der Punkt, um den sie kreist
+    if (keys.size) {
+      const target = mode === "free" ? eye : center;
+      const speed = mode === "free" ? 0.35 : 0.08 * Math.max(4, dist) * 0.12;
       const fwd = [Math.sin(yaw), 0, -Math.cos(yaw)];
       const right = [Math.cos(yaw), 0, Math.sin(yaw)];
-      if (keys.has("w")) { eye[0] += fwd[0] * speed; eye[2] += fwd[2] * speed; }
-      if (keys.has("s")) { eye[0] -= fwd[0] * speed; eye[2] -= fwd[2] * speed; }
-      if (keys.has("a")) { eye[0] -= right[0] * speed; eye[2] -= right[2] * speed; }
-      if (keys.has("d")) { eye[0] += right[0] * speed; eye[2] += right[2] * speed; }
-      if (keys.has("e")) eye[1] += speed;
-      if (keys.has("q")) eye[1] -= speed;
+      if (keys.has("w")) { target[0] += fwd[0] * speed; target[2] += fwd[2] * speed; }
+      if (keys.has("s")) { target[0] -= fwd[0] * speed; target[2] -= fwd[2] * speed; }
+      if (keys.has("a")) { target[0] -= right[0] * speed; target[2] -= right[2] * speed; }
+      if (keys.has("d")) { target[0] += right[0] * speed; target[2] += right[2] * speed; }
+      if (keys.has("e")) target[1] += speed;
+      if (keys.has("q")) target[1] -= speed;
       needsRedraw = true;
     }
     if (needsRedraw) {

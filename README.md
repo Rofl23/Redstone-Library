@@ -91,16 +91,58 @@ Daten sind davon nicht betroffen (liegen ja bei Turso).
 
 ## Simulation — Stand & Grenzen
 
-Die Tick-Simulation beherrscht: Staub mit analogen Signalstärken,
-Hebel/Knöpfe, Fackeln, Verstärker (Delay + Locking), Komparatoren
-(Vergleich/Subtraktion, Komposter-/Zielblock-Auslesen, Durchgriff durch
-Blöcke), Lampen, Beobachter, Kolben mit Schleim-/Honig-Gruppen und
-bewegten Blöcken (2-GT-Zwischenzustand), Quasi-Konnektivität mit
-BUD-Verhalten, Antriebs-/Aktivierungsschienen, Türen/Falltüren,
-Notenblöcke, Leafstone und Stolperdrähte.
+Die Engine ist **ereignisbasiert** (Stufe 3) und arbeitet wie Vanilla
+in Phasen pro Game-Tick:
 
-Bekannte Grenze: Designs, die auf Minecrafts exakte ereignisbasierte
-Update-Reihenfolge kompiliert sind (0-Tick-Tech, große "Final"-Türen),
-laufen noch nicht zyklusgenau. Dafür müsste die Engine von "pro Tick
-global rechnen" auf Vanilla-artige Ereignisverarbeitung umgebaut
-werden — geplanter nächster großer Meilenstein.
+1. **Tile-Ticks** mit Vanilla-Prioritäten (−3 extrem hoch … 0 normal),
+   sortiert nach Zeit → Priorität → Einfüge-Reihenfolge. Verstärker
+   nutzen die echten Prioritätsregeln (vor Diode: −3, beim Abschalten:
+   −2, sonst −1), Fackeln/Beobachter/Lampen normale Priorität.
+2. **Block-Events** für Kolben — am Tick-Ende verarbeitet, inklusive
+   Events, die währenddessen neu entstehen. Dadurch funktionieren
+   0-Tick-Pulse: Retract-Stornierung durch Re-Powern im selben Tick
+   und "block dropping" (kurzer Puls → klebriger Kolben lässt den
+   Block fallen).
+3. **Bewegungs-Phase** (Vanillas Block-Entity-Phase): geschobene
+   Blöcke materialisieren NACH den Block-Events; daraus entstehende
+   Kolben-Events laufen erst im nächsten Tick — wie im Spiel.
+
+Block-Updates laufen sofort und synchron in Minecrafts Reihenfolge
+(West, Ost, Unten, Oben, Nord, Süd); Staub-Änderungen benachrichtigen
+wie Vanilla die Nachbarn und deren Nachbarn (ohne Dedupe, in
+Original-Reihenfolge). Beobachter sind shape-getrieben, pulsen auch
+nach eigener Bewegung, Quasi-Konnektivität + BUD ergibt sich von
+selbst, weil Kolben nur auf Block-Updates reagieren. Der Rest des
+Komponentenumfangs (Staub analog, Verstärker-Locking, Komparatoren
+inkl. Behälter-Durchgriff, Schienenketten, Leafstone, Stolperdrähte,
+Notenblock-BUDs, Türen/Falltüren, Lampen mit 4 GT Aus-Verzögerung)
+ist auf Event-Handler portiert.
+
+Tests: `npm test` (Vanilla-Primitiven: Fackel-/Verstärker-Timing,
+Puls-Garantie, Signalabfall, QC-BUD, 0-Tick-Kolben, Locking,
+Beobachter-Pulse), `npm run test:door` (Integrationstest 8x8 Flush
+Trapdoor Final), `npm run debug:door` (Fortschritts- und
+Konsistenz-Diagnose).
+
+Ein wichtiges Vanilla-Detail ist ebenfalls umgesetzt: **Kolbenköpfe
+leiten Block-Updates an ihre Basis weiter** (wie
+`PistonHeadBlock.neighborChanged`) — so wecken Nachbar-Ankünfte
+QC-geparkte Kolben, deren Basis das Update selbst nie erreichen
+würde. Nach dem Stillstand meldet `npm run debug:door` inzwischen
+**null** inkonsistente Komponenten: jeder Zustand passt zu seinen
+Eingängen, es gibt keine Endlos-Oszillationen und keine hängenden
+Bewegungen mehr.
+
+Bekannte Grenze: Die 8x8 Flush Trapdoor Final öffnet aktuell 4 ihrer
+8 Spalten (außen je 2 pro Seite), dann fehlt der Startimpuls für die
+Verschiebung des Block-Streifens (Tape) der Ostseite. Diagnose-Stand:
+Die West-Tape-Maschinerie (y=3–7, z≤6/z≥13) läuft vollständig durch;
+ihr Ost-Spiegel feuert nie. Der Ost-Trigger hängt an der
+Repeater-Leitung y=5, z=19 (x=8–15), gespeist über ein
+Komparator-Gate, das den Komposter (17,5,18, Level 1) liest — diese
+Leitung bleibt über den ganzen Lauf tot. Nächster Schritt: verfolgen,
+was dieses Gate in Vanilla freischaltet (vermutlich ein weiteres
+Update-/Timing-Detail des Analog-Busses), z. B. per Referenzmessung
+in echtem Minecraft. Werkzeuge dafür liegen bereit:
+`test/door.debug.js` (Konsistenz-Check) und die Testfälle in
+`test/sim.test.js`.

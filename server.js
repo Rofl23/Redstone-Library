@@ -142,6 +142,10 @@ app.post("/api/machines", async (req, res) => {
   if (!name || !category || !description || !version || !difficulty || !designer) {
     return res.status(400).json({ error: "Pflichtfelder fehlen" });
   }
+
+  // optionale englische Texte — nur Strings mit sinnvoller Länge
+  const nameEn = typeof req.body.nameEn === "string" ? req.body.nameEn.trim().slice(0, 80) : "";
+  const descriptionEn = typeof req.body.descriptionEn === "string" ? req.body.descriptionEn.trim().slice(0, 300) : "";
   if (!Array.isArray(materials) || materials.length === 0 ||
       !materials.every(m => typeof m.name === "string" && Number.isInteger(m.amount) && m.amount > 0)) {
     return res.status(400).json({ error: "materials muss eine Liste aus { name, amount } sein" });
@@ -169,7 +173,9 @@ app.post("/api/machines", async (req, res) => {
     }
 
     const machine = await db.createMachine({
-      id, name, category, description, version, difficulty, designer,
+      id, name, category, description,
+      nameEn: nameEn || null, descriptionEn: descriptionEn || null,
+      version, difficulty, designer,
       uploadDate: new Date().toISOString().slice(0, 10), // "2026-07-19"
       downloadUrl,
       materials

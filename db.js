@@ -117,10 +117,34 @@ async function init() {
       data       BLOB NOT NULL
     )`);
 
+  // Zweisprachigkeit nachrüsten: optionale englische Spalten.
+  // ALTER TABLE schlägt fehl, wenn es die Spalte schon gibt — das
+  // fangen wir ab, so bleibt der Aufruf beliebig wiederholbar.
+  for (const col of ["name_en", "description_en"]) {
+    try { await db.execute(`ALTER TABLE machines ADD COLUMN ${col} TEXT`); }
+    catch { /* Spalte existiert schon */ }
+  }
+
   const count = (await db.execute("SELECT COUNT(*) AS n FROM machines")).rows[0].n;
   if (Number(count) === 0) {
     for (const m of seedData) await createMachine(m);
     console.log("Datenbank angelegt und mit Beispieldaten gefüllt.");
+  }
+
+  // Englische Texte für die Beispielmaschinen nachtragen (nur wenn
+  // noch leer — überschreibt nie etwas)
+  const seedEn = {
+    "auto-weizenfarm": ["Automatic Wheat Farm", "Pistons harvest ripe wheat automatically, water carries the items to a hopper."],
+    "flush-tuer-2x2": ["Flush 2x2 Piston Door", "Disappears completely into the wall, no piston visible from outside."],
+    "item-sortierer": ["Item Sorter (6 slots)", "Automatically sorts incoming items into six chests by type."],
+    "xor-gatter": ["XOR Gate (compact)", "Smallest possible XOR gate, useful as a building block for larger circuits."],
+    "schleim-farm": ["Slime Farm (Superflat)", "Uses pistons to crush slimes in superflat worlds."]
+  };
+  for (const [id, [nameEn, descEn]] of Object.entries(seedEn)) {
+    await db.execute({
+      sql: "UPDATE machines SET name_en = ?, description_en = ? WHERE id = ? AND (name_en IS NULL OR name_en = '')",
+      args: [nameEn, descEn, id]
+    });
   }
 
   // Einmalige Migration: liegen noch Schematics im alten files/-Ordner,
@@ -163,6 +187,7 @@ async function getAllMachines() {
     if (!byId.has(row.id)) {
       byId.set(row.id, {
         id: row.id, name: row.name, category: row.category, description: row.description,
+        nameEn: row.name_en || null, descriptionEn: row.description_en || null,
         version: row.version, difficulty: row.difficulty, designer: row.designer,
         uploadDate: row.uploadDate, downloadUrl: row.downloadUrl, materials: []
       });
@@ -179,6 +204,7 @@ async function getMachineById(id) {
   const mats = await db.execute({ sql: "SELECT name, amount FROM materials WHERE machine_id = ? ORDER BY id", args: [id] });
   return {
     id: m.id, name: m.name, category: m.category, description: m.description,
+    nameEn: m.name_en || null, descriptionEn: m.description_en || null,
     version: m.version, difficulty: m.difficulty, designer: m.designer,
     uploadDate: m.uploadDate, downloadUrl: m.downloadUrl,
     materials: mats.rows.map(r => ({ name: r.name, amount: Number(r.amount) }))
@@ -189,9 +215,10 @@ async function createMachine(m) {
   // batch = Transaktion: entweder alles oder nichts
   const statements = [
     {
-      sql: `INSERT INTO machines (id, name, category, description, version, difficulty, designer, uploadDate, downloadUrl)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      args: [m.id, m.name, m.category, m.description, m.version, m.difficulty, m.designer, m.uploadDate, m.downloadUrl]
+      sql: `INSERT INTO machines (id, name, category, description, name_en, description_en, version, difficulty, designer, uploadDate, downloadUrl)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [m.id, m.name, m.category, m.description, m.nameEn || null, m.descriptionEn || null,
+        m.version, m.difficulty, m.designer, m.uploadDate, m.downloadUrl]
     },
     ...m.materials.map(mat => ({
       sql: "INSERT INTO materials (machine_id, name, amount) VALUES (?, ?, ?)",

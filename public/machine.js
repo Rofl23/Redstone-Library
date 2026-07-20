@@ -24,11 +24,11 @@ function renderDetail() {
     .map(m => `<li><span class="mat-amount">${m.amount}×</span> ${m.name}</li>`)
     .join("");
 
-  document.title = `${machine.name} – ${t("title")}`;
+  document.title = `${localName(machine)} – ${t("title")}`;
 
   container.innerHTML = `
-    <h2 class="detail-title">${machine.name}</h2>
-    <p class="card-desc">${machine.description}</p>
+    <h2 class="detail-title">${localName(machine)}</h2>
+    <p class="card-desc">${localDesc(machine)}</p>
 
     <dl class="detail-meta">
       <dt>${t("version")}</dt><dd>${machine.version}</dd>

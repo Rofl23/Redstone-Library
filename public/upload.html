@@ -60,6 +60,18 @@
         <textarea name="description" rows="3" required maxlength="300"></textarea>
       </label>
 
+      <!-- optionale englische Fassung — angezeigt wird sie, wenn die
+           Seite auf Englisch steht (sonst Rückfall auf die Hauptfelder) -->
+      <label>
+        <span data-i18n="nameEnLabel">Name auf Englisch (optional)</span>
+        <input type="text" name="nameEn" maxlength="80">
+      </label>
+
+      <label>
+        <span data-i18n="descriptionEnLabel">Beschreibung auf Englisch (optional)</span>
+        <textarea name="descriptionEn" rows="2" maxlength="300"></textarea>
+      </label>
+
       <label>
         <span data-i18n="version">Version</span>
         <!-- Nur Vollversionen seit 1.12 (früher gab es Litematica

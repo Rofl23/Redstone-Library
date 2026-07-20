@@ -33,6 +33,8 @@ const translations = {
     nameLabel: "Name",
     categoryLabel: "Kategorie",
     descriptionLabel: "Beschreibung",
+    nameEnLabel: "Name auf Englisch (optional)",
+    descriptionEnLabel: "Beschreibung auf Englisch (optional)",
     addMaterial: "+ Material hinzufügen",
     matNamePlaceholder: "z. B. Kolben",
     noMaterials: "Mindestens ein Material angeben.",
@@ -49,7 +51,7 @@ const translations = {
     simStep: "1 Tick",
     simReset: "Zurücksetzen",
     viewerLoading: "3D-Ansicht lädt… (beim ersten Mal dauert es kurz, Texturen werden geladen)",
-    viewerHint: "Ziehen = Ansicht drehen · Mausrad = zoomen · Klick auf Hebel/Knopf = schalten",
+    viewerHint: "Ziehen = Ansicht drehen · Mausrad = zoomen · WASD + Q/E = bewegen · Klick auf Hebel/Knopf = schalten",
     viewerHintFree: "Ziehen = umsehen · WASD + Q/E = fliegen · Mausrad = vor/zurück · Klick = schalten",
     viewerHintTouch: "1 Finger = drehen · 2 Finger = zoomen · Tippen = Hebel/Knopf schalten",
     viewerHintFreeTouch: "1 Finger = umsehen · 2 Finger zusammen/auseinander = fliegen · Tippen = schalten",
@@ -83,9 +85,11 @@ const translations = {
     loadError: "Could not load data – is the server running?",
     upload: "+ Upload a machine",
     uploadHeading: "Upload a new machine",
-    nameLabel: "Name",
+    nameLabel: "Name (any language)",
     categoryLabel: "Category",
-    descriptionLabel: "Description",
+    descriptionLabel: "Description (any language)",
+    nameEnLabel: "Name in English (optional)",
+    descriptionEnLabel: "Description in English (optional)",
     addMaterial: "+ Add material",
     matNamePlaceholder: "e.g. piston",
     noMaterials: "Add at least one material.",
@@ -102,7 +106,7 @@ const translations = {
     simStep: "1 tick",
     simReset: "Reset",
     viewerLoading: "Loading 3D view… (first time takes a moment, textures are loading)",
-    viewerHint: "Drag = rotate view · Wheel = zoom · Click levers/buttons to toggle",
+    viewerHint: "Drag = rotate view · Wheel = zoom · WASD + Q/E = move · Click levers/buttons to toggle",
     viewerHintFree: "Drag = look around · WASD + Q/E = fly · Wheel = forward/back · Click to toggle",
     viewerHintTouch: "1 finger = rotate · 2 fingers = zoom · Tap levers/buttons to toggle",
     viewerHintFreeTouch: "1 finger = look around · pinch = fly · Tap to toggle",
@@ -125,6 +129,16 @@ let language = localStorage.getItem("language") || "de";
 
 function t(key) {
   return translations[language][key] || key;
+}
+
+// Anzeigename/-beschreibung je nach Sprachwahl: auf Englisch die
+// englischen Felder nehmen, wenn vorhanden — sonst Rückfall auf
+// die Hauptfelder
+function localName(m) {
+  return language === "en" && m.nameEn ? m.nameEn : m.name;
+}
+function localDesc(m) {
+  return language === "en" && m.descriptionEn ? m.descriptionEn : m.description;
 }
 
 function difficultyLabel(difficulty) {
