@@ -146,6 +146,12 @@ async function initViewer(machineId) {
   const sim = new RedstoneSim(grid);
   sim.settle();
 
+  // Debug-Zugang: macht Simulation und Gitter in der Browser-Konsole
+  // erreichbar (window.sim / window.grid). Kostet nichts und erspart
+  // beim Nachstellen von Fehlern das Raten anhand von Screenshots.
+  window.sim = sim;
+  window.grid = grid;
+
   const dpr = window.devicePixelRatio || 1;
   canvas.width = canvas.clientWidth * dpr;
   canvas.height = canvas.clientHeight * dpr;
