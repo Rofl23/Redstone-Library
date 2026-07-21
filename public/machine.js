@@ -21,20 +21,34 @@ function renderDetail() {
   });
 
   const materialRows = machine.materials
-    .map(m => `<li><span class="mat-amount">${m.amount}×</span> ${m.name}</li>`)
+    .map(m => `<li><span class="mat-amount">${esc(m.amount)}×</span> ${esc(m.name)}</li>`)
     .join("");
 
   document.title = `${localName(machine)} – ${t("title")}`;
 
+  const src = safeUrl(machine.sourceUrl);
+  const sourceRow = src
+    ? `<dt>${t("sourceUrl")}</dt><dd><a href="${esc(src)}" target="_blank" rel="noopener noreferrer nofollow">${esc(new URL(src).hostname)}</a></dd>`
+    : "";
+  // t() gibt bei unbekanntem Schlüssel den Schlüssel selbst zurück —
+  // deshalb hier prüfen und im Zweifel den Rohwert anzeigen
+  const permKey = "perm_" + machine.permission;
+  const permLabel = t(permKey) === permKey ? machine.permission : t(permKey);
+  const permRow = machine.permission
+    ? `<dt>${t("permission")}</dt><dd>${esc(permLabel)}</dd>`
+    : "";
+
   container.innerHTML = `
-    <h2 class="detail-title">${localName(machine)}</h2>
-    <p class="card-desc">${localDesc(machine)}</p>
+    <h2 class="detail-title">${esc(localName(machine))}</h2>
+    <p class="card-desc">${esc(localDesc(machine))}</p>
 
     <dl class="detail-meta">
-      <dt>${t("version")}</dt><dd>${machine.version}</dd>
-      <dt>${t("difficultyLabel")}</dt><dd>${difficultyLabel(machine.difficulty)}</dd>
-      <dt>${t("designer")}</dt><dd>${machine.designer}</dd>
-      <dt>${t("uploaded")}</dt><dd>${date}</dd>
+      <dt>${t("version")}</dt><dd>${esc(machine.version)}</dd>
+      <dt>${t("difficultyLabel")}</dt><dd>${esc(difficultyLabel(machine.difficulty))}</dd>
+      <dt>${t("designer")}</dt><dd>${esc(machine.designer)}</dd>
+      ${sourceRow}
+      ${permRow}
+      <dt>${t("uploaded")}</dt><dd>${esc(date)}</dd>
     </dl>
 
     <h3 class="detail-heading">${t("materials")}</h3>

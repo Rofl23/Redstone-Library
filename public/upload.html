@@ -107,6 +107,23 @@
         <input type="text" name="designer" required placeholder="u/DeinName" maxlength="40">
       </label>
 
+      <label>
+        <span data-i18n="sourceUrl">Quelle (Link zum Original)</span>
+        <input type="url" name="sourceUrl" placeholder="https://reddit.com/r/redstone/..." maxlength="500">
+        <small class="field-hint" data-i18n="sourceUrlHint">Reddit-Post, YouTube-Video oder Forenbeitrag, in dem der Bau veröffentlicht wurde. Leer lassen, wenn es dein eigener Bau ist.</small>
+      </label>
+
+      <label>
+        <span data-i18n="permission">Freigabe</span>
+        <select name="permission">
+          <option value="eigenes-werk" data-i18n="permOwn">Eigener Bau</option>
+          <option value="erlaubnis-erhalten" data-i18n="permAsked">Designer hat zugestimmt</option>
+          <option value="frei-geteilt" data-i18n="permFree">Vom Designer frei zum Teilen gestellt</option>
+          <option value="unbekannt" selected data-i18n="permUnknown">Ungeklärt</option>
+        </select>
+        <small class="field-hint" data-i18n="permissionHint">Den Designer zu nennen ersetzt keine Erlaubnis. Im Zweifel „Ungeklärt" wählen und vorher nachfragen.</small>
+      </label>
+
       <h3 class="detail-heading" data-i18n="materials">Materialien</h3>
       <div id="material-rows"></div>
       <button type="button" id="add-material" class="filter-btn" data-i18n="addMaterial">+ Material hinzufügen</button>

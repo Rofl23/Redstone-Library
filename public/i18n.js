@@ -23,6 +23,19 @@ const translations = {
     version: "Version",
     difficultyLabel: "Schwierigkeit",
     designer: "Design",
+    sourceUrl: "Quelle",
+    sourceUrlHint: "Reddit-Post, YouTube-Video oder Forenbeitrag, in dem der Bau veröffentlicht wurde. Leer lassen, wenn es dein eigener Bau ist.",
+    permission: "Freigabe",
+    permissionHint: "Den Designer zu nennen ersetzt keine Erlaubnis. Im Zweifel „Ungeklärt“ wählen und vorher nachfragen.",
+    permOwn: "Eigener Bau",
+    permAsked: "Designer hat zugestimmt",
+    permFree: "Vom Designer frei zum Teilen gestellt",
+    permUnknown: "Ungeklärt",
+    perm_eigenes_werk: "Eigener Bau",
+    "perm_eigenes-werk": "Eigener Bau",
+    "perm_erlaubnis-erhalten": "Designer hat zugestimmt",
+    "perm_frei-geteilt": "Vom Designer frei zum Teilen gestellt",
+    perm_unbekannt: "Ungeklärt",
     uploaded: "Hochgeladen",
     download: "Download (.litematic)",
     back: "← Zurück zur Bibliothek",
@@ -78,6 +91,18 @@ const translations = {
     version: "Version",
     difficultyLabel: "Difficulty",
     designer: "Design",
+    sourceUrl: "Source",
+    sourceUrlHint: "Reddit post, YouTube video or forum thread where the build was published. Leave empty if it is your own build.",
+    permission: "Permission",
+    permissionHint: "Crediting the designer is not the same as having permission. When in doubt pick “Unclear” and ask first.",
+    permOwn: "My own build",
+    permAsked: "Designer gave permission",
+    permFree: "Released for sharing by the designer",
+    permUnknown: "Unclear",
+    "perm_eigenes-werk": "My own build",
+    "perm_erlaubnis-erhalten": "Designer gave permission",
+    "perm_frei-geteilt": "Released for sharing by the designer",
+    perm_unbekannt: "Unclear",
     uploaded: "Uploaded",
     download: "Download (.litematic)",
     back: "← Back to the library",
@@ -177,4 +202,26 @@ function setupLanguageButton() {
   });
   // beim Laden einmal anwenden, falls gespeicherte Sprache != Standard
   setLanguage(language);
+}
+
+// ---------------------------------------------------------------
+// SICHERHEIT
+// Maschinendaten stammen aus dem öffentlichen Upload-Formular und
+// werden per innerHTML in die Seite geschrieben. Ohne Maskierung
+// könnte jemand über Name, Beschreibung oder Designer Skriptcode
+// einschleusen, der dann bei allen Besuchern läuft. esc() muss
+// deshalb um JEDEN eingesetzten Wert herum.
+// ---------------------------------------------------------------
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// Links zusätzlich auf http/https einschränken — sonst wären
+// javascript:-URLs möglich, die beim Klick Code ausführen.
+function safeUrl(value) {
+  try {
+    const u = new URL(String(value));
+    return (u.protocol === "http:" || u.protocol === "https:") ? u.href : null;
+  } catch { return null; }
 }

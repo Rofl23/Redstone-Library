@@ -108,6 +108,8 @@ async function handleSubmit(event) {
     version: el.version.value.trim(),
     difficulty: el.difficulty.value,
     designer: el.designer.value.trim(),
+    sourceUrl: el.sourceUrl.value.trim() || undefined,
+    permission: el.permission.value,
     fileToken: el.fileToken.value || undefined,
     materials
   };

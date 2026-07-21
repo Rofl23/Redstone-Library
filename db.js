@@ -120,7 +120,12 @@ async function init() {
   // Zweisprachigkeit nachrüsten: optionale englische Spalten.
   // ALTER TABLE schlägt fehl, wenn es die Spalte schon gibt — das
   // fangen wir ab, so bleibt der Aufruf beliebig wiederholbar.
-  for (const col of ["name_en", "description_en"]) {
+  // Herkunft nachrüsten: sourceUrl verweist auf das Original (Reddit-Post,
+  // YouTube-Video, Forenbeitrag), permission hält fest, auf welcher
+  // Grundlage die Schematic hier liegen darf. Den Designer zu nennen und
+  // die Erlaubnis zur Weiterverbreitung zu haben sind zwei verschiedene
+  // Dinge — viele Redstone-Bauer erlauben das eine, nicht das andere.
+  for (const col of ["name_en", "description_en", "sourceUrl", "permission"]) {
     try { await db.execute(`ALTER TABLE machines ADD COLUMN ${col} TEXT`); }
     catch { /* Spalte existiert schon */ }
   }
@@ -189,6 +194,7 @@ async function getAllMachines() {
         id: row.id, name: row.name, category: row.category, description: row.description,
         nameEn: row.name_en || null, descriptionEn: row.description_en || null,
         version: row.version, difficulty: row.difficulty, designer: row.designer,
+        sourceUrl: row.sourceUrl || null, permission: row.permission || null,
         uploadDate: row.uploadDate, downloadUrl: row.downloadUrl, materials: []
       });
     }
@@ -206,6 +212,7 @@ async function getMachineById(id) {
     id: m.id, name: m.name, category: m.category, description: m.description,
     nameEn: m.name_en || null, descriptionEn: m.description_en || null,
     version: m.version, difficulty: m.difficulty, designer: m.designer,
+    sourceUrl: m.sourceUrl || null, permission: m.permission || null,
     uploadDate: m.uploadDate, downloadUrl: m.downloadUrl,
     materials: mats.rows.map(r => ({ name: r.name, amount: Number(r.amount) }))
   };
@@ -215,10 +222,11 @@ async function createMachine(m) {
   // batch = Transaktion: entweder alles oder nichts
   const statements = [
     {
-      sql: `INSERT INTO machines (id, name, category, description, name_en, description_en, version, difficulty, designer, uploadDate, downloadUrl)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      sql: `INSERT INTO machines (id, name, category, description, name_en, description_en, version, difficulty, designer, sourceUrl, permission, uploadDate, downloadUrl)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [m.id, m.name, m.category, m.description, m.nameEn || null, m.descriptionEn || null,
-        m.version, m.difficulty, m.designer, m.uploadDate, m.downloadUrl]
+        m.version, m.difficulty, m.designer, m.sourceUrl || null, m.permission || null,
+        m.uploadDate, m.downloadUrl]
     },
     ...m.materials.map(mat => ({
       sql: "INSERT INTO materials (machine_id, name, amount) VALUES (?, ?, ?)",

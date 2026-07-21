@@ -21,7 +21,18 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());                                  // JSON im Request-Body parsen
-app.use(express.static(path.join(__dirname, "public"))); // Frontend ausliefern
+// Frontend ausliefern. HTML und JS bekommen "no-cache": Der Browser darf
+// sie weiter zwischenspeichern, muss aber bei jedem Aufruf beim Server
+// nachfragen, ob sie sich geändert haben (ETag → meist 304, kein erneuter
+// Download). Ohne das liefert der Browser nach einem Deploy weiter die
+// alte sim.js aus und simuliert stillschweigend mit veraltetem Code —
+// ein Fehler, der sehr schwer zu erkennen ist, weil die API frische
+// Daten liefert und nur die Logik alt ist.
+app.use(express.static(path.join(__dirname, "public"), {
+  setHeaders(res, filePath) {
+    if (/\.(html|js|css)$/.test(filePath)) res.setHeader("Cache-Control", "no-cache");
+  }
+}));
 
 // 3D-Bibliotheken lokal aus node_modules ausliefern — so hängt der
 // Viewer an keinem externen CDN (nur die Texturen kommen von außen)
@@ -146,6 +157,21 @@ app.post("/api/machines", async (req, res) => {
   // optionale englische Texte — nur Strings mit sinnvoller Länge
   const nameEn = typeof req.body.nameEn === "string" ? req.body.nameEn.trim().slice(0, 80) : "";
   const descriptionEn = typeof req.body.descriptionEn === "string" ? req.body.descriptionEn.trim().slice(0, 300) : "";
+
+  // Herkunft: Quelle nur als http(s)-Link annehmen — ein Feld, in dem ein
+  // Link landet, der später ungeprüft in die Seite geschrieben wird, ist
+  // sonst ein offenes Scheunentor (javascript:-URLs).
+  const rawSource = typeof req.body.sourceUrl === "string" ? req.body.sourceUrl.trim().slice(0, 500) : "";
+  let sourceUrl = "";
+  if (rawSource) {
+    try {
+      const u = new URL(rawSource);
+      if (u.protocol === "http:" || u.protocol === "https:") sourceUrl = u.href;
+      else return res.status(400).json({ error: "Quelle muss ein http- oder https-Link sein" });
+    } catch { return res.status(400).json({ error: "Quelle ist kein gültiger Link" }); }
+  }
+  const ALLOWED_PERMISSION = ["eigenes-werk", "erlaubnis-erhalten", "frei-geteilt", "unbekannt"];
+  const permission = ALLOWED_PERMISSION.includes(req.body.permission) ? req.body.permission : "unbekannt";
   if (!Array.isArray(materials) || materials.length === 0 ||
       !materials.every(m => typeof m.name === "string" && Number.isInteger(m.amount) && m.amount > 0)) {
     return res.status(400).json({ error: "materials muss eine Liste aus { name, amount } sein" });
@@ -176,6 +202,7 @@ app.post("/api/machines", async (req, res) => {
       id, name, category, description,
       nameEn: nameEn || null, descriptionEn: descriptionEn || null,
       version, difficulty, designer,
+      sourceUrl: sourceUrl || null, permission,
       uploadDate: new Date().toISOString().slice(0, 10), // "2026-07-19"
       downloadUrl,
       materials

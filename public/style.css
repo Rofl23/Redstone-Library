@@ -437,3 +437,14 @@ body.fs-lock{ overflow:hidden; }
   text-align:center;
   padding:1.5rem;
 }
+
+/* Hinweistext unter einem Formularfeld — erklärt, was gemeint ist,
+   ohne das Label zu überfrachten */
+.field-hint {
+  display: block;
+  margin-top: .35rem;
+  font-size: .82rem;
+  line-height: 1.4;
+  color: var(--muted, #8a8a8a);
+  font-weight: 400;
+}

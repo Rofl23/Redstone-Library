@@ -25,12 +25,12 @@ function renderMachines(list) {
     card.className = "card";
     card.href = `machine.html?id=${encodeURIComponent(machine.id)}`;
     card.innerHTML = `
-      <h2 class="card-title">${localName(machine)}</h2>
-      <p class="card-desc">${localDesc(machine)}</p>
+      <h2 class="card-title">${esc(localName(machine))}</h2>
+      <p class="card-desc">${esc(localDesc(machine))}</p>
       <div class="card-meta">
-        <span class="tag category">${machine.category}</span>
-        <span class="tag">${machine.version}</span>
-        <span class="tag">${difficultyLabel(machine.difficulty)}</span>
+        <span class="tag category">${esc(machine.category)}</span>
+        <span class="tag">${esc(machine.version)}</span>
+        <span class="tag">${esc(difficultyLabel(machine.difficulty))}</span>
       </div>
     `;
     grid.appendChild(card);
