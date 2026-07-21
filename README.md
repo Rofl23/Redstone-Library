@@ -209,38 +209,49 @@ verhält sich richtig, die Ostseite hat einen Runaway. Der
 Beobachter-Puls auf den Notenblock-Zustandswechsel ist dabei korrekt
 (POWERED ist Teil des Blockzustands, Vanilla-Beobachter sehen das).
 
-Der Wanderer marschiert dabei als Ganzes: Kolben (17,3,5) zieht beim
-Einziehen den Schieber (16,3,6) per Slime-Klebung einen Block nach
-Osten, der schiebt erneut — fünf Zyklen bis x=21, dann ist der Platz
-alle.
+**Korrektur gegenüber einer früheren Fassung dieses Abschnitts:** Das
+Wandern der Ost-Baugruppe ist **kein Fehler**. Eine Referenzmessung im
+Spiel (1.18) hat bestätigt, dass der Kolben (16,3,6) dort ebenfalls
+mehrfach feuert und die Baugruppe ebenfalls **genau 5 Blöcke** nach
+Osten wandert. Der Hinweg stimmt also exakt. Die frühere Diagnose
+„Runaway" beruhte auf einer falsch gestellten Frage — gefragt war nach
+dem Zustand *nach* dem Zyklus (da steht alles wieder am Platz), nicht
+nach dem Ablauf *währenddessen*.
+
+Zwei echte Abweichungen bleiben:
+
+1. **Der Rückweg fehlt.** Im Spiel kehrt die Baugruppe beim Schließen
+   an ihren Platz zurück, in der Simulation bleibt sie auf x=21 stehen.
+   Das erklärt auch die 434 Abweichungen im Reversibilitätstest.
+2. **Ein Wettlauf innerhalb von GT 21.** Dort sollen die
+   Aufwärts-Kolben `(x,4,8)` ausfahren, während zwei west-zeigende
+   Sticky-Kolben (17,3,7) und (17,4,9) einziehen und dabei die
+   Tür-Tape-Reihe nach Osten ziehen. Die Zieh-Events stehen in der
+   Warteschlange auf Platz 3–5, die Ausfahr-Events erst ab Platz 8 —
+   die Kolben werden also weggezogen, bevor sie ausfahren können, und
+   ihre Events laufen ins Leere. Wären sie zuerst dran, wären sie
+   ausgefahren und damit unbeweglich, und der Zug könnte sie nicht
+   fassen. Unterbindet man testweise nur den Zug von (17,3,7), öffnet
+   die Tür 60 statt 56 Felder.
+
+Beide Ketten laufen in der Simulation im Gleichtakt (beide Kolbengruppen
+fahren GT 19 aus, beide reagieren GT 21). Im echten Bau können sie das
+nicht tun, sonst würde die Tür dort ebenfalls klemmen — irgendeine
+Verzögerung in einer der beiden Ketten ist also um mindestens einen
+Tick falsch.
 
 **Bereits geprüft und als Ursache ausgeschlossen:**
 
-* *Der Auslöser.* Notenblock (16,4,4) wird über den Target-Block
-  (16,4,3) und den Staub (16,4,2) powered. Staub gibt in Vanilla
-  starkes Signal in seine Zeigerichtung, der Target-Block leitet es
-  als Vollblock weiter — regelkonform. Die Westseite hat an dieser
-  Stelle schlicht keinen Target/Staub, die beiden Arme sind hier
-  **absichtlich verschieden gebaut**, kein Spiegel.
-* *Der Beobachter-Puls* auf den Notenblock-Zustandswechsel (POWERED
-  gehört zum Blockzustand) und die *QC über Luft* auf (16,4,6) sind
-  beide vanilla-korrekt.
+* *Der Auslöser* (Target-Block → Notenblock → Beobachter → QC) ist in
+  jedem Glied vanilla-korrekt.
 * *`collectGroup`.* Eine getreue Portierung von Vanillas
-  `PistonStructureResolver` (inkl. „Schubachse beim Verzweigen
-  überspringen") liefert für den Schub bei GT 15 **exakt dieselben 12
-  Blöcke** — keine Abweichung.
-* *Die Baugruppe selbst* ist sauber ost-west-gespiegelt (Obsidian
-  blockiert auf beiden Seiten die nach innen zeigenden Kolben
-  (6,3,5)/(17,3,5) identisch).
+  `PistonStructureResolver` liefert für den Schub bei GT 15 exakt
+  dieselben 12 Blöcke.
+* *Das Wandern selbst* — im Spiel bestätigt, siehe oben.
 
-Damit ist jeder Einzelschritt für sich vanilla-treu, das Gesamtergebnis
-aber falsch. Nächster Verdacht: nicht *ob*, sondern *wann* — die
-relative Reihenfolge von Block-Events und Bewegungs-Phase innerhalb
-eines Ticks, die darüber entscheidet, ob der Zieher (17,3,5) den
-Schieber (16,3,6) überhaupt noch zu fassen bekommt. Zu klären wäre am
-besten per Referenzmessung in echtem Minecraft, ob die Ost-Baugruppe
-dort ebenfalls wandert (dann liegt der Fehler in der Kollateralwirkung
-bei GT 21) oder stillsteht (dann in der Tick-Phasenordnung).
+Nächster Schritt: die Phasenlage der beiden Ketten klären. Nützlich
+wäre eine Referenzmessung im Spiel, ob sich die Tür-Tape-Reihe **vor**
+oder **nach** dem ersten Schub der Ost-Baugruppe bewegt.
 
 Achtung für die Weiterarbeit: Der Bau ist **nicht** global
 ost-west-gespiegelt (583 Abweichungen schon im Ausgangszustand), eine
