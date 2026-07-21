@@ -118,11 +118,41 @@ inkl. Behälter-Durchgriff, Schienenketten, Leafstone, Stolperdrähte,
 Notenblock-BUDs, Türen/Falltüren, Lampen mit 4 GT Aus-Verzögerung)
 ist auf Event-Handler portiert.
 
-Tests: `npm test` (Vanilla-Primitiven: Fackel-/Verstärker-Timing,
-Puls-Garantie, Signalabfall, QC-BUD, 0-Tick-Kolben, Locking,
-Beobachter-Pulse), `npm run test:door` (Integrationstest 8x8 Flush
-Trapdoor Final), `npm run debug:door` (Fortschritts- und
-Konsistenz-Diagnose).
+## Tests
+
+| Befehl | Was es prüft |
+|--------|--------------|
+| `npm test` | Vanilla-Primitiven einzeln: Fackel-/Verstärker-Timing (alle vier Delay-Stufen), Puls-Garantie, Signalabfall, QC-BUD, 0-Tick-Kolben, 12-Block-Schubgrenze, Locking, Beobachter-Pulse |
+| `npm run test:machines` | Alle Maschinen in `files/` gegen allgemeine Invarianten |
+| `npm run test:all` | beides |
+| `npm run test:door` | Integrationstest 8x8 Flush Trapdoor Final |
+| `npm run debug:door` | Fortschritts- und Konsistenz-Diagnose |
+
+`test:machines` prüft bewusst **kein** maschinenspezifisches
+Wunschergebnis, sondern Eigenschaften, die jede korrekte Engine
+erfüllen muss — dadurch lässt sich die Engine nicht auf eine einzelne
+Maschine überanpassen:
+
+* **RUHE** — ohne Eingabe darf sich kein Zustand von selbst ändern
+* **DETERMINISMUS** — zwei identische Läufe, Block für Block gleich
+* **KONSISTENZ** — nach dem Stillstand passt jeder Zustand zu seinen
+  Eingängen. BUD-geparkte Kolben zählen ausdrücklich **nicht** als
+  Fehler; die sind in Vanilla legal, darauf beruht Quasi-Konnektivität
+* **REVERSIBEL** — Hebel um, zur Ruhe, Hebel zurück, zur Ruhe →
+  Endzustand muss dem Anfangszustand entsprechen. Der schärfste Test:
+  Er fängt wandernde Blöcke, ohne dass man wissen muss, was die
+  Maschine eigentlich tut
+
+Bekannte offene Punkte stehen als `KNOWN_OPEN` in
+`test/machines.test.js`. Die lassen die Suite nicht scheitern, aber
+wenn einer davon plötzlich besteht, meldet die Suite das und schlägt
+fehl — damit ein Fix nicht unbemerkt bleibt.
+
+Die Aussagekraft der Tests wurde per **Mutationstest** geprüft: gezielt
+eingebaute Fehler (Verstärker-Delay immer 1, QC abgeschaltet, kein
+Signalabfall, 12-Block-Grenze aufgehoben) müssen von mindestens einer
+Suite gefangen werden. Die ersten beiden Lücken, die dabei auffielen,
+sind mit Test 9 und 10 in `sim.test.js` geschlossen.
 
 Mehrere Vanilla-Details sind zusätzlich umgesetzt, die alle auf
 demselben Muster beruhen — **welche Blöcke beim Zustandswechsel

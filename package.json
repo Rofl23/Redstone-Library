@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "node test/sim.test.js",
+    "test:machines": "node test/machines.test.js",
+    "test:all": "node test/sim.test.js && node test/machines.test.js",
     "test:door": "node test/door.test.js",
     "debug:door": "node test/door.debug.js"
   },

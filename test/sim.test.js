@@ -179,5 +179,61 @@ test("Verstärker: Locking friert den Zustand ein", () => {
   assert.strictEqual(at(sim, 2, 1, 2).props.power, "0");
 });
 
+// ---- 9. Verstärker: alle vier Verzögerungsstufen ----------------
+// Test 2 prüft nur delay=1 — eine Engine, die JEDE Verzögerung als 1 RT
+// behandelt, käme damit durch. Hier werden alle vier Stufen einzeln
+// nachgemessen: delay=n bedeutet exakt 2n Game-Ticks.
+test("Verstärker: Verzögerung 1–4 entspricht exakt 2/4/6/8 GT", () => {
+  for (const delay of [1, 2, 3, 4]) {
+    const sim = new RedstoneSim(world(5, 3, 3, [
+      [0, 0, 1, "stone"], [2, 0, 1, "stone"],
+      [0, 1, 1, "lever", { face: "floor", powered: "false" }],
+      [1, 1, 1, "repeater", { facing: "west", delay: String(delay), powered: "false" }],
+      [2, 1, 1, "redstone_wire", { power: "0" }]
+    ]));
+    sim.interact(0, 1, 1);                      // Eingang dauerhaft an
+    const want = 2 * delay;
+    for (let gt = 1; gt < want; gt++) {
+      sim.tick();
+      assert.strictEqual(at(sim, 2, 1, 1).props.power, "0",
+        `delay=${delay}: nach ${gt} GT darf der Ausgang noch nicht an sein`);
+    }
+    sim.tick();                                 // GT == 2*delay
+    assert.strictEqual(at(sim, 2, 1, 1).props.power, "15",
+      `delay=${delay}: nach ${want} GT muss der Ausgang an sein`);
+  }
+});
+
+// ---- 10. Kolben: 12-Block-Grenze --------------------------------
+// Vanilla schiebt höchstens 12 Blöcke. Bei 13 passiert gar nichts —
+// der Kolben fährt nicht einmal aus.
+test("Kolben: schiebt 12 Blöcke, verweigert bei 13", () => {
+  // Kolben bei x=0 nach Osten, davor LÜCKENLOS n Steine ab x=1.
+  const build = n => {
+    const blocks = [
+      [0, 0, 1, "stone"],
+      [0, 2, 1, "lever", { face: "floor", powered: "false" }],
+      [0, 1, 1, "piston", { facing: "east", extended: "false" }]
+    ];
+    for (let i = 0; i < n; i++) blocks.push([1 + i, 1, 1, "stone"]);
+    return new RedstoneSim(world(n + 4, 3, 3, blocks));
+  };
+
+  const ok = build(12);
+  ok.interact(0, 2, 1);
+  for (let i = 0; i < 6; i++) ok.tick();
+  assert.strictEqual(at(ok, 0, 1, 1).props.extended, "true", "12 Blöcke: Kolben fährt aus");
+  assert.strictEqual(at(ok, 1, 1, 1).name, "minecraft:piston_head", "12 Blöcke: Kopf steht");
+  assert.strictEqual(at(ok, 13, 1, 1).name, "minecraft:stone", "12 Blöcke: hinterster Block ist mitgerückt");
+  assert.strictEqual(at(ok, 14, 1, 1).name, "minecraft:air", "12 Blöcke: dahinter bleibt Luft");
+
+  const tooMany = build(13);
+  tooMany.interact(0, 2, 1);
+  for (let i = 0; i < 6; i++) tooMany.tick();
+  assert.strictEqual(at(tooMany, 0, 1, 1).props.extended, "false", "13 Blöcke: Kolben bleibt eingefahren");
+  assert.strictEqual(at(tooMany, 1, 1, 1).name, "minecraft:stone", "13 Blöcke: nichts hat sich bewegt");
+  assert.strictEqual(at(tooMany, 14, 1, 1).name, "minecraft:air", "13 Blöcke: nichts ist nach hinten gerückt");
+});
+
 console.log("\n" + passed + " bestanden, " + failed + " fehlgeschlagen");
 process.exit(failed ? 1 : 0);
