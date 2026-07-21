@@ -24,69 +24,13 @@ const db = createClient({
 });
 
 // ---------------------------------------------------------------
-// SEED-DATEN (wie gehabt)
+// KEINE SEED-DATEN.
+// Frueher legte init() hier fuenf Beispielmaschinen an, sobald die
+// Tabelle leer war. Das machte es unmoeglich, die Bibliothek zu
+// leeren: Nach jedem Serverstart standen die Demo-Eintraege wieder
+// drin. Eine leere Bibliothek ist ein gueltiger Zustand — die Liste
+// zeigt dann den Hinweistext aus i18n ("empty").
 // ---------------------------------------------------------------
-const seedData = [
-  {
-    id: "auto-weizenfarm",
-    name: "Automatische Weizenfarm",
-    category: "Farm",
-    description: "Kolben ernten reifen Weizen automatisch, Wasser transportiert die Items zum Trichter.",
-    version: "1.20+", difficulty: "Einfach", designer: "u/FarmerJoe_MC",
-    uploadDate: "2026-03-14", downloadUrl: "#",
-    materials: [
-      { name: "Kolben", amount: 9 }, { name: "Redstoneblock", amount: 9 },
-      { name: "Beobachter", amount: 9 }, { name: "Trichter", amount: 1 }, { name: "Kiste", amount: 1 }
-    ]
-  },
-  {
-    id: "flush-tuer-2x2",
-    name: "Flush-Kolbentür 2x2",
-    category: "Tür",
-    description: "Verschwindet komplett in der Wand, kein sichtbarer Kolben von außen.",
-    version: "1.16+", difficulty: "Mittel", designer: "u/RedstoneRiley",
-    uploadDate: "2025-11-02", downloadUrl: "#",
-    materials: [
-      { name: "Klebriger Kolben", amount: 4 }, { name: "Kolben", amount: 4 },
-      { name: "Redstonestaub", amount: 6 }, { name: "Redstonefackel", amount: 2 }, { name: "Druckplatte", amount: 2 }
-    ]
-  },
-  {
-    id: "item-sortierer",
-    name: "Item-Sortierer (6-fach)",
-    category: "Speicher",
-    description: "Sortiert eingehende Items automatisch in sechs verschiedene Kisten nach Typ.",
-    version: "1.14+", difficulty: "Mittel", designer: "u/StorageSage",
-    uploadDate: "2025-08-21", downloadUrl: "#",
-    materials: [
-      { name: "Trichter", amount: 14 }, { name: "Kiste", amount: 6 },
-      { name: "Vergleicher", amount: 6 }, { name: "Redstonestaub", amount: 12 }
-    ]
-  },
-  {
-    id: "xor-gatter",
-    name: "XOR-Gatter (kompakt)",
-    category: "Logik",
-    description: "Kleinstmögliches XOR-Gatter, nützlich als Baustein für größere Rechenwerke.",
-    version: "1.13+", difficulty: "Fortgeschritten", designer: "u/LogicLumberjack",
-    uploadDate: "2025-05-09", downloadUrl: "#",
-    materials: [
-      { name: "Redstonefackel", amount: 4 }, { name: "Redstonestaub", amount: 4 }, { name: "Vollblock", amount: 3 }
-    ]
-  },
-  {
-    id: "schleim-farm",
-    name: "Schleim-Farm (Superflach)",
-    category: "Farm",
-    description: "Nutzt Kolben zum Zerquetschen von Slimes in Superflach-Welten.",
-    version: "1.18+", difficulty: "Fortgeschritten", designer: "u/SlimySteve",
-    uploadDate: "2026-01-30", downloadUrl: "#",
-    materials: [
-      { name: "Kolben", amount: 22 }, { name: "Redstoneblock", amount: 22 },
-      { name: "Beobachter", amount: 11 }, { name: "Trichter", amount: 4 }, { name: "Kiste", amount: 2 }
-    ]
-  }
-];
 
 // ---------------------------------------------------------------
 // INITIALISIERUNG — einmal beim Serverstart aufrufen (await!)
@@ -117,39 +61,18 @@ async function init() {
       data       BLOB NOT NULL
     )`);
 
-  // Zweisprachigkeit nachrüsten: optionale englische Spalten.
-  // ALTER TABLE schlägt fehl, wenn es die Spalte schon gibt — das
-  // fangen wir ab, so bleibt der Aufruf beliebig wiederholbar.
-  // Herkunft nachrüsten: sourceUrl verweist auf das Original (Reddit-Post,
-  // YouTube-Video, Forenbeitrag), permission hält fest, auf welcher
-  // Grundlage die Schematic hier liegen darf. Den Designer zu nennen und
-  // die Erlaubnis zur Weiterverbreitung zu haben sind zwei verschiedene
-  // Dinge — viele Redstone-Bauer erlauben das eine, nicht das andere.
+  // Optionale Spalten nachrüsten. ALTER TABLE schlägt fehl, wenn es die
+  // Spalte schon gibt — das fangen wir ab, so bleibt der Aufruf beliebig
+  // wiederholbar.
+  //   name_en / description_en  Zweisprachigkeit
+  //   sourceUrl                 Link zum Original (Reddit, YouTube, Forum)
+  //   permission                auf welcher Grundlage die Schematic hier
+  //                             liegen darf — den Designer zu nennen und
+  //                             die Erlaubnis zur Weiterverbreitung zu
+  //                             haben sind zwei verschiedene Dinge
   for (const col of ["name_en", "description_en", "sourceUrl", "permission"]) {
     try { await db.execute(`ALTER TABLE machines ADD COLUMN ${col} TEXT`); }
     catch { /* Spalte existiert schon */ }
-  }
-
-  const count = (await db.execute("SELECT COUNT(*) AS n FROM machines")).rows[0].n;
-  if (Number(count) === 0) {
-    for (const m of seedData) await createMachine(m);
-    console.log("Datenbank angelegt und mit Beispieldaten gefüllt.");
-  }
-
-  // Englische Texte für die Beispielmaschinen nachtragen (nur wenn
-  // noch leer — überschreibt nie etwas)
-  const seedEn = {
-    "auto-weizenfarm": ["Automatic Wheat Farm", "Pistons harvest ripe wheat automatically, water carries the items to a hopper."],
-    "flush-tuer-2x2": ["Flush 2x2 Piston Door", "Disappears completely into the wall, no piston visible from outside."],
-    "item-sortierer": ["Item Sorter (6 slots)", "Automatically sorts incoming items into six chests by type."],
-    "xor-gatter": ["XOR Gate (compact)", "Smallest possible XOR gate, useful as a building block for larger circuits."],
-    "schleim-farm": ["Slime Farm (Superflat)", "Uses pistons to crush slimes in superflat worlds."]
-  };
-  for (const [id, [nameEn, descEn]] of Object.entries(seedEn)) {
-    await db.execute({
-      sql: "UPDATE machines SET name_en = ?, description_en = ? WHERE id = ? AND (name_en IS NULL OR name_en = '')",
-      args: [nameEn, descEn, id]
-    });
   }
 
   // Einmalige Migration: liegen noch Schematics im alten files/-Ordner,
@@ -237,6 +160,18 @@ async function createMachine(m) {
   return getMachineById(m.id);
 }
 
+// Alles löschen. Materialien und Dateien hängen per ON DELETE CASCADE
+// an den Maschinen — die werden aber nur mitgelöscht, wenn die
+// Fremdschlüssel-Prüfung aktiv ist, und das ist sie nicht überall.
+// Deshalb hier ausdrücklich alle drei Tabellen leeren.
+async function deleteAllMachines() {
+  await db.batch([
+    "DELETE FROM files",
+    "DELETE FROM materials",
+    "DELETE FROM machines"
+  ], "write");
+}
+
 // ---------------------------------------------------------------
 // SCHEMATIC-DATEIEN (BLOBs)
 // ---------------------------------------------------------------
@@ -253,4 +188,4 @@ async function getFile(machineId) {
   return Buffer.from(rs.rows[0].data);
 }
 
-module.exports = { init, getAllMachines, getMachineById, createMachine, saveFile, getFile };
+module.exports = { init, getAllMachines, getMachineById, createMachine, deleteAllMachines, saveFile, getFile };

@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "db:clear": "node clear-machines.js",
     "test": "node test/sim.test.js",
     "test:machines": "node test/machines.test.js",
     "test:all": "node test/sim.test.js && node test/machines.test.js",
